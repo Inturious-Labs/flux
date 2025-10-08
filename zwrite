@@ -16,6 +16,16 @@ source "$SCRIPT_DIR/lib/publish.sh"
 source "$SCRIPT_DIR/lib/session.sh"
 source "$SCRIPT_DIR/lib/git_manager.sh"
 
+# Ensure theme is restored on exit (even if interrupted)
+cleanup_on_exit() {
+    # Only restore if we're not in a normal exit path
+    if [ -f "$HOME/Library/Application Support/Cursor/User/settings.json.backup" ]; then
+        source "$SCRIPT_DIR/lib/session.sh"
+        end_writing_session 2>/dev/null || true
+    fi
+}
+trap cleanup_on_exit EXIT INT TERM
+
 # Colors
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -266,17 +276,15 @@ main_loop() {
                     
                 m|promote)
                     if [[ "$current_site" == "dsc" ]]; then
-                        echo -e "${CYAN}⬆️  Select draft to promote...${NC}"
+                        echo -e "${CYAN}📤 Publishing draft to dated folder...${NC}"
                         echo ""
-                        
-                        if draft_dir=$(select_draft_for_promotion "$current_site"); then
-                            promote_draft "$draft_dir"
-                            echo ""
-                            echo -ne "${BLUE}Press any key to continue...${NC}"
-                            read -r
-                        fi
+
+                        publish_dsc_draft
+                        echo ""
+                        echo -ne "${BLUE}Press any key to continue...${NC}"
+                        read -r
                     else
-                        echo -e "${RED}❌ Draft promotion is only available for Digital Sovereignty Chronicle${NC}"
+                        echo -e "${RED}❌ Draft publishing is only available for Digital Sovereignty Chronicle${NC}"
                         echo -ne "${BLUE}Press any key to continue...${NC}"
                         read -r
                     fi

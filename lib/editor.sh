@@ -51,16 +51,13 @@ open_in_cursor() {
             osascript -e 'tell application "System Events" to keystroke "e" using {command down, shift down}' 2>/dev/null || true
             sleep 1
 
-            # Split editor to the right (Cmd+\)
-            osascript -e 'tell application "System Events" to keystroke "\\" using {command down}' 2>/dev/null || true
+            # Open markdown preview to the side (Cmd+K V) - this opens preview in a new editor group to the right
+            osascript -e 'tell application "System Events" to keystroke "k" using {command down}' 2>/dev/null || true
+            sleep 0.5
+            osascript -e 'tell application "System Events" to keystroke "v"' 2>/dev/null || true
             sleep 1
 
-            # Open markdown preview in the right pane (Cmd+Shift+V)
-            osascript -e 'tell application "System Events" to keystroke "v" using {command down, shift down}' 2>/dev/null || true
-            sleep 1
-
-            # If preview opened below instead of to the side, close it and try again with split first
-            # Focus back to left pane first
+            # Focus back to left pane (Cmd+1)
             osascript -e 'tell application "System Events" to keystroke "1" using {command down}' 2>/dev/null || true
         fi
         

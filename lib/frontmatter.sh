@@ -40,13 +40,7 @@ create_dsc_frontmatter() {
         slug="$custom_slug"
     fi
     
-    # Date (default to now)
-    local current_date=$(date -u +"%Y-%m-%dT%H:%M:%S+00:00")
-    printf "${GREEN}Date${NC} ${GRAY}(default: now):${NC} $current_date ${GRAY}[Enter to accept, or type new]:${NC} "
-    read -r custom_date
-    if [ -n "$custom_date" ]; then
-        current_date="$custom_date"
-    fi
+    # Skip date for drafts - will be set during publishing
     
     # Description
     printf "${GREEN}Description${NC} ${GRAY}(brief summary):${NC} "
@@ -65,11 +59,8 @@ create_dsc_frontmatter() {
     printf "${GREEN}Keywords${NC} ${GRAY}(optional, comma-separated for SEO - can be added later):${NC} "
     read -r keywords
     
-    # Generate directory structure
-    local current_year=$(date +%Y)
-    local current_month=$(date +%m) 
-    local current_day=$(date +%d)
-    local post_dir="/Users/zire/matrix/github_zire/digital-sovereignty/content/posts/$current_year/$current_month/$current_day-$slug"
+    # Generate directory structure for drafts
+    local post_dir="/Users/zire/matrix/github_zire/digital-sovereignty/content/posts/drafts/$slug"
     
     # Check if directory exists
     if [ -d "$post_dir" ]; then
@@ -89,7 +80,6 @@ create_dsc_frontmatter() {
     cat > "$post_file" << EOF
 ---
 title: "$title"
-date: $current_date
 slug: $slug
 draft: true
 description: "$description"
@@ -146,18 +136,139 @@ EOF
 EOF
     
     echo ""
-    echo -e "${GREEN}✅ Post created successfully!${NC}"
+    echo -e "${GREEN}✅ Draft created successfully!${NC}"
     echo -e "${BLUE}📁 Location:${NC} $post_dir"
     echo -e "${BLUE}📝 File:${NC} $post_file"
     echo ""
     echo -e "${PURPLE}Next steps:${NC}"
     echo -e "  1. Add images to the post directory"
     echo -e "  2. Write your content"
-    echo -e "  3. Preview: cd $post_dir && hugo server -D"
-    echo -e "  4. Publish when ready"
+    echo -e "  3. Preview: cd /Users/zire/matrix/github_zire/digital-sovereignty && hugo server -D"
+    echo -e "  4. Use 'Publish Draft' option when ready to publish"
     
     # Return the post file path for opening in editor
     POST_FILE_RESULT="$post_file"
+    return 0
+}
+
+publish_dsc_draft() {
+    echo -e "${BLUE}📤 Publishing DSC Draft${NC}"
+    echo ""
+
+    # List available drafts
+    local drafts_dir="/Users/zire/matrix/github_zire/digital-sovereignty/content/posts/drafts"
+    if [ ! -d "$drafts_dir" ] || [ -z "$(ls -A "$drafts_dir" 2>/dev/null)" ]; then
+        echo -e "${RED}❌ No drafts found in $drafts_dir${NC}"
+        return 1
+    fi
+
+    echo -e "${GREEN}Available drafts:${NC}"
+    local draft_folders=()
+    local count=1
+    for draft in "$drafts_dir"/*; do
+        if [ -d "$draft" ]; then
+            local draft_name=$(basename "$draft")
+            draft_folders+=("$draft_name")
+            echo -e "  ${BLUE}$count.${NC} $draft_name"
+            ((count++))
+        fi
+    done
+
+    if [ ${#draft_folders[@]} -eq 0 ]; then
+        echo -e "${RED}❌ No draft folders found${NC}"
+        return 1
+    fi
+
+    echo ""
+    printf "${GREEN}Select draft to publish (1-${#draft_folders[@]}):${NC} "
+    read -r draft_choice
+
+    # Validate choice
+    if ! [[ "$draft_choice" =~ ^[0-9]+$ ]] || [ "$draft_choice" -lt 1 ] || [ "$draft_choice" -gt ${#draft_folders[@]} ]; then
+        echo -e "${RED}❌ Invalid selection${NC}"
+        return 1
+    fi
+
+    local selected_draft="${draft_folders[$((draft_choice-1))]}"
+    local draft_path="$drafts_dir/$selected_draft"
+    local draft_file="$draft_path/index.md"
+
+    if [ ! -f "$draft_file" ]; then
+        echo -e "${RED}❌ Draft file not found: $draft_file${NC}"
+        return 1
+    fi
+
+    echo ""
+    echo -e "${BLUE}Selected draft:${NC} $selected_draft"
+
+    # Get publication date
+    printf "${GREEN}Publication date${NC} ${GRAY}(YYYY-MM-DD format):${NC} "
+    read -r pub_date
+
+    # Validate date format
+    if ! date -j -f "%Y-%m-%d" "$pub_date" "+%Y-%m-%d" >/dev/null 2>&1; then
+        echo -e "${RED}❌ Invalid date format. Use YYYY-MM-DD${NC}"
+        return 1
+    fi
+
+    # Extract date components
+    local pub_year=$(echo "$pub_date" | cut -d'-' -f1)
+    local pub_month=$(echo "$pub_date" | cut -d'-' -f2)
+    local pub_day=$(echo "$pub_date" | cut -d'-' -f3)
+
+    # Create target directory
+    local target_dir="/Users/zire/matrix/github_zire/digital-sovereignty/content/posts/$pub_year/$pub_month/$pub_day-$selected_draft"
+
+    # Check if target already exists
+    if [ -d "$target_dir" ]; then
+        echo -e "${RED}❌ Target directory already exists: $target_dir${NC}"
+        echo -e "${YELLOW}💡 You may already have a post scheduled for this date${NC}"
+        return 1
+    fi
+
+    # Create target directory
+    mkdir -p "$target_dir"
+    if [ $? -ne 0 ]; then
+        echo -e "${RED}❌ Failed to create target directory${NC}"
+        return 1
+    fi
+
+    # Copy draft content to target
+    cp -r "$draft_path"/* "$target_dir/"
+    if [ $? -ne 0 ]; then
+        echo -e "${RED}❌ Failed to copy draft content${NC}"
+        return 1
+    fi
+
+    # Update frontmatter with publication date and set draft: false
+    local target_file="$target_dir/index.md"
+    local iso_date="${pub_date}T12:00:00+00:00"
+
+    # Read current frontmatter and content
+    local temp_file=$(mktemp)
+
+    # Add date field and set draft: false
+    sed -e "/^title:/a\\
+date: $iso_date" -e "s/^draft: true$/draft: false/" "$target_file" > "$temp_file"
+
+    mv "$temp_file" "$target_file"
+
+    echo ""
+    echo -e "${GREEN}✅ Draft published successfully!${NC}"
+    echo -e "${BLUE}📁 Published to:${NC} $target_dir"
+    echo -e "${BLUE}📅 Publication date:${NC} $pub_date"
+    echo ""
+
+    # Ask if user wants to remove the draft
+    printf "${YELLOW}Remove draft folder? [y/N]:${NC} "
+    read -r remove_draft
+    if [[ "$remove_draft" =~ ^[Yy]$ ]]; then
+        rm -rf "$draft_path"
+        echo -e "${GREEN}✅ Draft folder removed${NC}"
+    else
+        echo -e "${BLUE}ℹ️  Draft folder kept at: $draft_path${NC}"
+    fi
+
     return 0
 }
 
@@ -439,5 +550,6 @@ EOF
 
 # Export functions
 export -f create_dsc_frontmatter
+export -f publish_dsc_draft
 export -f create_sb_frontmatter
 export -f create_hy_frontmatter

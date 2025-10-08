@@ -135,6 +135,57 @@ Zettelkasten Writer is a centralized writing workflow that manages content creat
 🚀 Published (committed to git, deployed automatically)
 ```
 
+### 🆕 Draft-First Workflow for DSC
+
+Digital Sovereignty Chronicle now supports a **draft-first workflow** designed for Zettelkasten-style parallel writing:
+
+#### Writing Workshop Branch Structure
+```
+main (infrastructure + published content)
+├── feature/infrastructure-changes (Hugo themes, configs, etc.)
+└── drafts/writing-pad (persistent writing branch)
+    ├── content/posts/drafts/crypto-regulation-analysis/
+    ├── content/posts/drafts/ai-sovereignty-framework/
+    ├── content/posts/drafts/decentralized-identity-deep-dive/
+    └── ... (multiple parallel drafts)
+```
+
+#### Workflow Steps
+
+1. **Draft Creation** - Posts start in `content/posts/drafts/slug/` without date constraints
+2. **Parallel Writing** - Work on 10+ articles simultaneously based on mood/inspiration
+3. **Version Control** - All draft progress committed to `drafts/writing-pad` branch
+4. **Publishing** - Use `m` key to publish drafts:
+   - Prompts for publication date (YYYY-MM-DD)
+   - Validates no conflicts with existing posts
+   - Moves from `drafts/slug/` to `posts/YYYY/MM/DD-slug/`
+   - Updates frontmatter with date and sets `draft: false`
+5. **Main Branch Integration** - Published content merged to main via squash commits
+
+#### Git Workflow
+```bash
+# Daily writing cycle in drafts/writing-pad branch
+git add content/posts/drafts/
+git commit -m "Draft progress: AI sovereignty - added regulatory framework"
+
+# Publishing ready articles (via zwrite 'm' command)
+git commit -m "Publish: AI Sovereignty Analysis - moved to dated folder"
+
+# Squash merge to main (creates clean publication history)
+git checkout main
+git merge --squash drafts/writing-pad
+git commit -m "Publish: AI Sovereignty in the Age of Regulation
+
+Comprehensive analysis of digital autonomy in emerging regulatory frameworks."
+```
+
+#### Benefits
+- **No time pressure** - drafts live without imposed dates
+- **Parallel creativity** - switch between articles freely
+- **Clean main branch** - only shows published content
+- **Rich draft history** - detailed writing journey preserved
+- **Conflict prevention** - publication date validation
+
 ### Session-Based Theme Switching
 
 - **Writing Mode**: Quiet Light theme with Georgia font, optimized for prose

@@ -55,10 +55,10 @@ get_dsc_drafts() {
     # Find all draft posts and collect with dates for sorting
     local temp_drafts=()
     
-    # Search in both content/posts and drafts folders
+    # Search in both content/posts and content/posts/drafts folders
     local search_paths=(
         "$dsc_path/content/posts"
-        "$dsc_path/drafts"
+        "$dsc_path/content/posts/drafts"
     )
     
     for search_path in "${search_paths[@]}"; do
@@ -84,9 +84,9 @@ get_dsc_drafts() {
                         icon="🟢"
                     fi
                     
-                    # Add location indicator - 💡 for drafts/, 📅 for content/posts/
+                    # Add location indicator - 💡 for content/posts/drafts/, 📅 for content/posts/
                     local location_icon="📅"
-                    if [[ "$post_dir" == *"/drafts/"* ]]; then
+                    if [[ "$post_dir" == *"/content/posts/drafts/"* ]]; then
                         location_icon="💡"
                     fi
                     
@@ -531,14 +531,14 @@ show_action_menu() {
         for draft in "${drafts[@]}"; do
             if [ -n "$draft" ]; then
                 IFS='|' read -r num title date words icon location_icon git_status_icon post_dir <<< "$draft"
-                if [[ "$location_icon" == "💡" ]]; then
+                if [[ "$post_dir" == *"/content/posts/drafts/"* ]]; then
                     drafts_folder_count=$((drafts_folder_count + 1))
                 fi
             fi
         done
         
         if [ $drafts_folder_count -gt 0 ]; then
-            echo -e "  ${CYAN}m)${NC} Promote draft to publish"
+            echo -e "  ${CYAN}m)${NC} Publish draft (move to dated folder)"
         fi
     fi
     
@@ -813,8 +813,8 @@ select_draft_for_promotion() {
     
     while IFS= read -r -d '' file; do
         local post_dir=$(dirname "$file")
-        # Only include drafts from drafts/ folder
-        if [[ "$post_dir" == *"/drafts/"* ]] && grep -q "draft: true" "$file" 2>/dev/null; then
+        # Only include drafts from content/posts/drafts/ folder
+        if [[ "$post_dir" == *"/content/posts/drafts/"* ]] && grep -q "draft: true" "$file" 2>/dev/null; then
             local title=$(grep 'title:' "$file" | sed 's/title: "//' | sed 's/"//' | head -1)
             local word_count=$(wc -w < "$file" | tr -d ' ')
             
@@ -844,7 +844,7 @@ select_draft_for_promotion() {
             count=$((count + 1))
             drafts+=("$count|$title|$creation_date|$word_count|$icon|💡|$git_status_icon|$post_dir")
         fi
-    done < <(find "$dsc_path/drafts" -name "index.md" -print0 2>/dev/null)
+    done < <(find "$dsc_path/content/posts/drafts" -name "index.md" -print0 2>/dev/null)
     
     if [ ${#drafts[@]} -eq 0 ]; then
         echo -e "${YELLOW}No drafts found in drafts/ folder for promotion.${NC}"
