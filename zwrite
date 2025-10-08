@@ -16,6 +16,16 @@ source "$SCRIPT_DIR/lib/publish.sh"
 source "$SCRIPT_DIR/lib/session.sh"
 source "$SCRIPT_DIR/lib/git_manager.sh"
 
+# Ensure theme is restored on exit (even if interrupted)
+cleanup_on_exit() {
+    # Only restore if we're not in a normal exit path
+    if [ -f "$HOME/Library/Application Support/Cursor/User/settings.json.backup" ]; then
+        source "$SCRIPT_DIR/lib/session.sh"
+        end_writing_session 2>/dev/null || true
+    fi
+}
+trap cleanup_on_exit EXIT INT TERM
+
 # Colors
 RED='\033[0;31m'
 GREEN='\033[0;32m'

@@ -300,6 +300,10 @@ enhanced_session_end() {
             ;;
         3)
             echo -e "${BLUE}💡 Continuing writing session...${NC}"
+            echo -ne "${BLUE}Press any key when done writing...${NC}"
+            read -r
+            # After continuing, show the menu again
+            enhanced_session_end "$post_file" "$site_code"
             return 0
             ;;
         4)
@@ -314,7 +318,7 @@ enhanced_session_end() {
             ;;
     esac
 
-    # Always end the writing session and restore theme
+    # Always end the writing session and restore theme (unless user chose to continue)
     source "$LIB_DIR/session.sh"
     end_writing_session
 }
