@@ -251,11 +251,11 @@ main_loop() {
                 p|publish)
                     echo -e "${BLUE}🚀 Select post to publish...${NC}"
                     echo ""
-                    
+
                     if post_file=$(select_completed "$current_site"); then
                         # Extract title from the selected post file
                         local title=$(grep 'title:' "$post_file" | sed 's/title: "//' | sed 's/"//' | head -1)
-                        publish_post "$title"
+                        publish_post "$title" "$current_site"
                         echo ""
                         echo -ne "${BLUE}Press any key to continue...${NC}"
                         read -r
@@ -306,25 +306,39 @@ main_loop() {
                     echo -e "${BLUE}🚀 Publishing completed post $action...${NC}"
                     echo ""
                     
-                    # Get the list of completed posts and select by letter
+                    # Get the list of completed posts and select by letter (site-specific)
                     local completed=()
-                    while IFS= read -r line; do
-                        if [ -n "$line" ]; then
-                            completed+=("$line")
-                        fi
-                    done < <(get_dsc_completed)
-                    
+                    if [[ "$current_site" == "dsc" ]]; then
+                        while IFS= read -r line; do
+                            if [ -n "$line" ]; then
+                                completed+=("$line")
+                            fi
+                        done < <(get_dsc_completed)
+                    elif [[ "$current_site" == "sb" ]]; then
+                        while IFS= read -r line; do
+                            if [ -n "$line" ]; then
+                                completed+=("$line")
+                            fi
+                        done < <(get_sb_completed)
+                    elif [[ "$current_site" == "hy" ]]; then
+                        while IFS= read -r line; do
+                            if [ -n "$line" ]; then
+                                completed+=("$line")
+                            fi
+                        done < <(get_hy_completed)
+                    fi
+
                     # Convert letter to index (a=0, b=1, etc.)
                     local letter_idx=$(($(printf "%d" "'$action") - 97))
-                    
+
                     if [ "$letter_idx" -ge 0 ] && [ "$letter_idx" -lt ${#completed[@]} ]; then
                         local selected_post="${completed[$letter_idx]}"
                         IFS='|' read -r num title date word_count icon post_dir <<< "$selected_post"
                         local post_file="$post_dir/index.md"
-                        
+
                         if [ -f "$post_file" ]; then
                             local title_for_publish=$(grep 'title:' "$post_file" | sed 's/title: "//' | sed 's/"//' | head -1)
-                            publish_post "$title_for_publish"
+                            publish_post "$title_for_publish" "$current_site"
                             echo ""
                             echo -ne "${BLUE}Press any key to continue...${NC}"
                             read -r
