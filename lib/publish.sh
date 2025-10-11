@@ -84,22 +84,38 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 
 publish_post() {
     local post_title="$1"
-    
+    local site_code="${2:-dsc}"  # Default to DSC for backwards compatibility
+
     if [ -z "$post_title" ]; then
         echo -e "${RED}❌ Post title required${NC}"
         return 1
     fi
-    
+
     echo -e "${BLUE}🚀 Publishing post: $post_title${NC}"
-    
-    # Generate slug from title  
+
+    # Set site path based on site code
+    local site_path
+    case "$site_code" in
+        "sb")
+            site_path="/Users/zire/matrix/github_zire/sundayblender"
+            ;;
+        "hy")
+            site_path="/Users/zire/matrix/github_zire/herbertyang.xyz"
+            ;;
+        "dsc"|*)
+            site_path="$DSC_PATH"
+            ;;
+    esac
+
+    # Generate slug from title
     local slug=$(echo "$post_title" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/--*/-/g' | sed 's/^-\|-$//g')
-    
-    # Find the post file
-    local post_file=$(find "$DSC_PATH/content/posts" -name "index.md" -exec grep -l "slug: $slug" {} \; 2>/dev/null | head -1)
-    
+
+    # Find the post file - search in content/posts for all sites
+    local post_file=$(find "$site_path/content/posts" -name "index.md" -exec grep -l "slug: $slug" {} \; 2>/dev/null | head -1)
+
     if [ -z "$post_file" ]; then
         echo -e "${RED}❌ Post not found: $post_title${NC}"
+        echo -e "${YELLOW}💡 Searched for slug '$slug' in $site_path/content/posts${NC}"
         return 1
     fi
     
@@ -171,15 +187,26 @@ publish_post() {
         return 1
     fi
     
-    # Change to DSC directory
-    cd "$DSC_PATH" || return 1
-    
+    # Change to site directory
+    cd "$site_path" || return 1
+
     # Git operations
     echo -e "${BLUE}🔄 Publishing...${NC}"
-    
+
     # Add the post directory
     git add "$post_dir"
-    
+
+    # Check for related PDF in static/pdf/ and add if exists
+    local pdf_pattern="static/pdf/*${slug}*.pdf"
+    if ls $pdf_pattern 2>/dev/null | grep -q .; then
+        echo -e "${BLUE}📄 Found related PDF files, adding to commit...${NC}"
+        git add static/pdf/*${slug}*.pdf 2>/dev/null || true
+    fi
+
+    # Stage any deletions (like old draft posts)
+    echo -e "${BLUE}🗑️  Staging deletions...${NC}"
+    git add -u .
+
     # Commit
     git commit -m "Publish: $post_title
 
@@ -190,17 +217,28 @@ publish_post() {
 🤖 Generated with [Claude Code](https://claude.ai/code)
 
 Co-Authored-By: Claude <noreply@anthropic.com>"
-    
+
     echo -e "${BLUE}📤 Pushing to remote...${NC}"
     git push origin HEAD
-    
+
     echo -e "${GREEN}✅ Post published successfully!${NC}"
     echo -e "${GREEN}🚀 GitHub Actions will deploy automatically${NC}"
-    echo -e "${GREEN}📧 RSS feed will update and trigger Buttondown${NC}"
-    
-    # Show post URL
+
+    # Show post URL based on site
     local post_slug=$(grep "slug:" "$post_file" | sed 's/slug: //' | tr -d ' ')
-    echo -e "${GREEN}🌐 Post URL: https://digitalsovereignty.herbertyang.xyz/p/$post_slug${NC}"
+    case "$site_code" in
+        "sb")
+            echo -e "${GREEN}📧 RSS feed will update and trigger Buttondown${NC}"
+            echo -e "${GREEN}🌐 Post URL: https://weekly.sundayblender.com/p/$post_slug${NC}"
+            ;;
+        "hy")
+            echo -e "${GREEN}🌐 Post URL: https://herbertyang.xyz/blog/$post_slug${NC}"
+            ;;
+        "dsc"|*)
+            echo -e "${GREEN}📧 RSS feed will update and trigger Buttondown${NC}"
+            echo -e "${GREEN}🌐 Post URL: https://digitalsovereignty.herbertyang.xyz/p/$post_slug${NC}"
+            ;;
+    esac
     
     return 0
 }
