@@ -80,6 +80,7 @@ create_dsc_frontmatter() {
     cat > "$post_file" << EOF
 ---
 title: "$title"
+date: 2099-12-31T00:00:00+08:00
 slug: $slug
 draft: true
 description: "$description"
@@ -242,29 +243,32 @@ publish_dsc_draft() {
 
     # Update frontmatter with publication date and set draft: false
     local target_file="$target_dir/index.md"
-    local iso_date="${pub_date}T12:00:00+00:00"
+    local iso_date="${pub_date}T12:00:00+08:00"
 
     # Read current frontmatter and content
     local temp_file=$(mktemp)
 
-    # Add date field and set draft: false
-    sed -e "/^title:/a\\
+    # Remove any existing date field, then add the publication date and set draft: false
+    sed -e "/^date:/d" -e "/^title:/a\\
 date: $iso_date" -e "s/^draft: true$/draft: false/" "$target_file" > "$temp_file"
 
     mv "$temp_file" "$target_file"
 
     echo ""
-    echo -e "${GREEN}✅ Draft published successfully!${NC}"
-    echo -e "${BLUE}📁 Published to:${NC} $target_dir"
+    echo -e "${GREEN}✅ Post moved to dated folder and ready for publication!${NC}"
+    echo -e "${BLUE}📁 Moved to:${NC} $target_dir"
     echo -e "${BLUE}📅 Publication date:${NC} $pub_date"
+    echo -e "${BLUE}📝 Status:${NC} draft: false"
+    echo ""
+    echo -e "${GRAY}💡 Next step: Create a PR to merge your branch for deployment${NC}"
     echo ""
 
-    # Ask if user wants to remove the draft
-    printf "${YELLOW}Remove draft folder? [y/N]:${NC} "
+    # Ask if user wants to empty the draft folder
+    printf "${YELLOW}Empty drafts/ folder? [y/N]:${NC} "
     read -r remove_draft
     if [[ "$remove_draft" =~ ^[Yy]$ ]]; then
         rm -rf "$draft_path"
-        echo -e "${GREEN}✅ Draft folder removed${NC}"
+        echo -e "${GREEN}✅ Drafts folder emptied${NC}"
     else
         echo -e "${BLUE}ℹ️  Draft folder kept at: $draft_path${NC}"
     fi
