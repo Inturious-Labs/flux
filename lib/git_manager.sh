@@ -11,6 +11,7 @@ BLUE='\033[0;34m'
 PURPLE='\033[0;35m'
 CYAN='\033[0;36m'
 GRAY='\033[0;90m'
+MAGENTA='\033[1;95m'  # Bright magenta for prominent display
 NC='\033[0m'
 BOLD='\033[1m'
 DIM='\033[2m'
@@ -52,7 +53,7 @@ check_git_status() {
 
     # Current branch
     local current_branch=$(git branch --show-current 2>/dev/null)
-    echo -e "${GREEN}Current branch:${NC} ${BOLD}${CYAN}$current_branch${NC}"
+    echo -e "${GREEN}Current branch:${NC} ${BOLD}${MAGENTA}$current_branch${NC}"
 
     # List recent branches (useful for finding drafts)
     echo -e "${GREEN}Recent branches:${NC}"
@@ -296,6 +297,41 @@ enhanced_session_end() {
             auto_commit_session "$site_code" "draft" "$article_title"
             ;;
         2)
+            # Mark ready for publish - handle date and draft flag for DSC
+            if [[ "$site_code" == "dsc" ]]; then
+                echo ""
+                echo -e "${BLUE}📅 Preparing post for publication...${NC}"
+
+                # Prompt for publication date
+                printf "${GREEN}Publication date${NC} ${GRAY}(YYYY-MM-DD format):${NC} "
+                read -r pub_date
+
+                # Validate date format
+                if ! date -j -f "%Y-%m-%d" "$pub_date" "+%Y-%m-%d" >/dev/null 2>&1; then
+                    echo -e "${RED}❌ Invalid date format. Use YYYY-MM-DD${NC}"
+                    echo -e "${YELLOW}⚠️  Skipping date update. You can set draft: false manually.${NC}"
+                else
+                    # Update frontmatter: replace placeholder date with real date and set draft: false
+                    local iso_date="${pub_date}T12:00:00+08:00"
+                    local temp_file=$(mktemp)
+
+                    # Remove old date line, add new date after title, and set draft: false
+                    sed -e "/^date:/d" -e "/^title:/a\\
+date: $iso_date" -e "s/^draft: true$/draft: false/" "$post_file" > "$temp_file"
+
+                    mv "$temp_file" "$post_file"
+
+                    echo -e "${GREEN}✅ Frontmatter updated:${NC}"
+                    echo -e "   - Publication date set to: $pub_date"
+                    echo -e "   - Draft flag changed to: false"
+                fi
+            else
+                # For non-DSC sites, just change draft: false
+                sed -i '' "s/^draft: true$/draft: false/" "$post_file" 2>/dev/null
+                echo -e "${GREEN}✅ Draft flag changed to false${NC}"
+            fi
+
+            echo ""
             auto_commit_session "$site_code" "publish" "$article_title"
             ;;
         3)
