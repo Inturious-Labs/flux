@@ -54,59 +54,47 @@ get_dsc_drafts() {
     
     # Find all draft posts and collect with dates for sorting
     local temp_drafts=()
-    
-    # Search in both content/posts and content/posts/drafts folders
-    local search_paths=(
-        "$dsc_path/content/posts"
-        "$dsc_path/content/posts/drafts"
-    )
-    
-    for search_path in "${search_paths[@]}"; do
-        if [ -d "$search_path" ]; then
-            while IFS= read -r -d '' file; do
-                if grep -q "draft: true" "$file" 2>/dev/null; then
-                    local title=$(grep 'title:' "$file" | sed 's/title: "//' | sed 's/"//' | head -1)
-                    local post_dir=$(dirname "$file")
-                    local word_count=$(wc -w < "$file" | tr -d ' ')
-                    
-                    # Get creation date from frontmatter
-                    local date_line=$(grep 'date:' "$file" | head -1)
-                    local creation_date=$(echo "$date_line" | sed 's/date: //' | cut -d'T' -f1)
-                    if [ -z "$creation_date" ]; then
-                        creation_date="Unknown"
-                    fi
-                    
-                    # Status icon based on word count
-                    local icon="🟡"
-                    if [ $word_count -lt 100 ]; then
-                        icon="🔴"
-                    elif [ $word_count -ge 600 ]; then
-                        icon="🟢"
-                    fi
-                    
-                    # Add location indicator - 💡 for content/posts/drafts/, 📅 for content/posts/
-                    local location_icon="📅"
-                    if [[ "$post_dir" == *"/content/posts/drafts/"* ]]; then
-                        location_icon="💡"
-                    fi
-                    
-                    # Check git status for this file
-                    local git_status_icon=""
-                    cd "$dsc_path" || continue
-                    local relative_file="${file#$dsc_path/}"
-                    local git_status=$(git status --porcelain "$relative_file" 2>/dev/null)
-                    
-                    if [ -n "$git_status" ]; then
-                        # File has uncommitted changes
-                        git_status_icon="*"
-                    fi
-                    
-                    # Store with date for sorting: "date|title|word_count|icon|location_icon|git_status_icon|post_dir"
-                    temp_drafts+=("$creation_date|$title|$word_count|$icon|$location_icon|$git_status_icon|$post_dir")
-                fi
-            done < <(find "$search_path" -name "index.md" -print0 2>/dev/null)
+
+    # Search only in content/posts/drafts folder
+    while IFS= read -r -d '' file; do
+        if grep -q "draft: true" "$file" 2>/dev/null; then
+            local title=$(grep 'title:' "$file" | sed 's/title: "//' | sed 's/"//' | head -1)
+            local post_dir=$(dirname "$file")
+            local word_count=$(wc -w < "$file" | tr -d ' ')
+
+            # Get creation date from frontmatter
+            local date_line=$(grep 'date:' "$file" | head -1)
+            local creation_date=$(echo "$date_line" | sed 's/date: //' | cut -d'T' -f1)
+            if [ -z "$creation_date" ]; then
+                creation_date="Unknown"
+            fi
+
+            # Status icon based on word count
+            local icon="🟡"
+            if [ $word_count -lt 100 ]; then
+                icon="🔴"
+            elif [ $word_count -ge 600 ]; then
+                icon="🟢"
+            fi
+
+            # Location indicator
+            local location_icon="💡"
+
+            # Check git status for this file
+            local git_status_icon=""
+            cd "$dsc_path" || continue
+            local relative_file="${file#$dsc_path/}"
+            local git_status=$(git status --porcelain "$relative_file" 2>/dev/null)
+
+            if [ -n "$git_status" ]; then
+                # File has uncommitted changes
+                git_status_icon="*"
+            fi
+
+            # Store with date for sorting: "date|title|word_count|icon|location_icon|git_status_icon|post_dir"
+            temp_drafts+=("$creation_date|$title|$word_count|$icon|$location_icon|$git_status_icon|$post_dir")
         fi
-    done
+    done < <(find "$dsc_path/content/posts/drafts" -name "index.md" -print0 2>/dev/null)
     
     # Sort by date (newest first) and add sequential numbers
     count=0
