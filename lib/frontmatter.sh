@@ -118,8 +118,9 @@ EOF
 keywords: []
 EOF
     fi
-    
+
     cat >> "$post_file" << EOF
+enable_rapport: true
 ---
 
 <!-- Featured image for social media -->
@@ -389,6 +390,7 @@ keywords: $keyword_field
 featured_image: ""
 images: [""]
 draft: true
+enable_rapport: true
 ---
 
 ## Tech
@@ -518,6 +520,7 @@ date: $current_date
 tags: [$tag_array]
 keywords: [$keyword_array]
 draft: true
+enable_rapport: true
 EOF
     
     # Add description if provided
