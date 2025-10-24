@@ -50,34 +50,23 @@ open_in_cursor() {
             # Hide explorer panel (Cmd+Shift+E)
             osascript -e 'tell application "System Events" to keystroke "e" using {command down, shift down}' 2>/dev/null || true
             sleep 1
-
-            # Open markdown preview to the side (Cmd+K V) - this opens preview in a new editor group to the right
-            osascript -e 'tell application "System Events" to keystroke "k" using {command down}' 2>/dev/null || true
-            sleep 0.5
-            osascript -e 'tell application "System Events" to keystroke "v"' 2>/dev/null || true
-            sleep 1
-
-            # Focus back to left pane (Cmd+1)
-            osascript -e 'tell application "System Events" to keystroke "1" using {command down}' 2>/dev/null || true
         fi
         
-        echo -e "${GREEN}✅ Cursor opened with side-by-side preview${NC}"
-        
+        echo -e "${GREEN}✅ Cursor opened with writing theme${NC}"
+
     else
         echo -e "${RED}❌ Cursor not found!${NC}"
         echo -e "${YELLOW}Please install Cursor from https://cursor.sh/${NC}"
         echo -e "${BLUE}📝 File location: $file_path${NC}"
         return 1
     fi
-    
+
     echo ""
     echo -e "${PURPLE}📋 Writing environment ready:${NC}"
-    echo -e "  • Normal window size with clean interface"
-    echo -e "  • Editor on left, preview on right"
-    echo -e "  • Explorer panel hidden for focus"
-    echo -e "  • 💡 Close the redundant index.md tab in right pane"
+    echo -e "  • Clean interface with explorer hidden"
+    echo -e "  • Writing theme applied"
     echo -e "  • Type 'img' + Tab for image insertion"
-    echo -e "  • Type 'figure' + Tab for captioned images"  
+    echo -e "  • Type 'figure' + Tab for captioned images"
     echo -e "  • AI assistance with Cmd+K"
     echo -e "  • Code Spell Checker for grammar and spelling"
     echo ""
