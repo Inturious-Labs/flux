@@ -73,10 +73,15 @@ save_draft_progress() {
 Co-Authored-By: Claude <noreply@anthropic.com>"
         
         echo -e "${BLUE}📤 Pushing to remote...${NC}"
-        git push origin HEAD
-        
-        echo -e "${GREEN}✅ Draft progress saved successfully!${NC}"
-        echo -e "${BLUE}📊 Word count: $word_count${NC}"
+        if git push origin HEAD; then
+            echo -e "${GREEN}✅ Successfully pushed to remote repository${NC}"
+            echo -e "${GREEN}✅ Draft progress saved successfully!${NC}"
+            echo -e "${BLUE}📊 Word count: $word_count${NC}"
+        else
+            echo -e "${RED}❌ Failed to push to remote repository${NC}"
+            echo -e "${YELLOW}⚠️  Draft is committed locally but not pushed${NC}"
+            return 1
+        fi
     fi
     
     return 0
@@ -219,10 +224,15 @@ publish_post() {
 Co-Authored-By: Claude <noreply@anthropic.com>"
 
     echo -e "${BLUE}📤 Pushing to remote...${NC}"
-    git push origin HEAD
-
-    echo -e "${GREEN}✅ Post published successfully!${NC}"
-    echo -e "${GREEN}🚀 GitHub Actions will deploy automatically${NC}"
+    if git push origin HEAD; then
+        echo -e "${GREEN}✅ Successfully pushed to remote repository${NC}"
+        echo -e "${GREEN}✅ Post published successfully!${NC}"
+        echo -e "${GREEN}🚀 GitHub Actions will deploy automatically${NC}"
+    else
+        echo -e "${RED}❌ Failed to push to remote repository${NC}"
+        echo -e "${YELLOW}⚠️  Post is committed locally but not pushed${NC}"
+        return 1
+    fi
 
     # Show post URL based on site
     local post_slug=$(grep "slug:" "$post_file" | sed 's/slug: //' | tr -d ' ')
@@ -289,9 +299,14 @@ delete_draft() {
 Co-Authored-By: Claude <noreply@anthropic.com>"
         
         echo -e "${BLUE}📤 Pushing to remote...${NC}"
-        git push origin HEAD
-        
-        echo -e "${GREEN}✅ Draft deleted and changes pushed!${NC}"
+        if git push origin HEAD; then
+            echo -e "${GREEN}✅ Successfully pushed to remote repository${NC}"
+            echo -e "${GREEN}✅ Draft deleted and changes pushed!${NC}"
+        else
+            echo -e "${RED}❌ Failed to push to remote repository${NC}"
+            echo -e "${YELLOW}⚠️  Draft deletion is committed locally but not pushed${NC}"
+            return 1
+        fi
     else
         # Directory is not tracked, just remove it
         rm -rf "$post_dir"
