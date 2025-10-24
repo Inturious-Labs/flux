@@ -115,6 +115,22 @@ publish_post() {
     # Generate slug from title
     local slug=$(echo "$post_title" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/--*/-/g' | sed 's/^-\|-$//g')
 
+    # For DSC: Use branch-of-branch workflow
+    local publish_branch=""
+    if [ "$site_code" = "dsc" ]; then
+        cd "$site_path" || return 1
+        local current_branch=$(git branch --show-current)
+
+        if [ "$current_branch" != "drafts/writing-pad" ]; then
+            echo -e "${YELLOW}⚠️  Not on drafts/writing-pad. Switching...${NC}"
+            git checkout drafts/writing-pad || return 1
+        fi
+
+        publish_branch="publish/$slug"
+        echo -e "${BLUE}🌿 Creating publish branch: $publish_branch${NC}"
+        git checkout -b "$publish_branch" || return 1
+    fi
+
     # Find the post file - search in content/posts for all sites
     local post_file=$(find "$site_path/content/posts" -name "index.md" -exec grep -l "slug: $slug" {} \; 2>/dev/null | head -1)
 
@@ -224,32 +240,73 @@ publish_post() {
 Co-Authored-By: Claude <noreply@anthropic.com>"
 
     echo -e "${BLUE}📤 Pushing to remote...${NC}"
-    if git push origin HEAD; then
+
+    # For DSC: Push publish branch, otherwise push current branch
+    local push_target="HEAD"
+    if [ -n "$publish_branch" ]; then
+        push_target="$publish_branch"
+    fi
+
+    if git push -u origin "$push_target"; then
         echo -e "${GREEN}✅ Successfully pushed to remote repository${NC}"
-        echo -e "${GREEN}✅ Post published successfully!${NC}"
-        echo -e "${GREEN}🚀 GitHub Actions will deploy automatically${NC}"
+
+        # Show post URL based on site
+        local post_slug=$(grep "slug:" "$post_file" | sed 's/slug: //' | tr -d ' ')
+
+        # For DSC with branch-of-branch workflow: Create PR and provide cleanup instructions
+        if [ "$site_code" = "dsc" ] && [ -n "$publish_branch" ]; then
+            echo ""
+            echo -e "${GREEN}✅ Publish branch created: $publish_branch${NC}"
+            echo ""
+            echo -e "${BLUE}📋 Next steps:${NC}"
+            echo -e "  1. Create PR: ${YELLOW}gh pr create --base main --head $publish_branch --title \"Publish: $post_title\"${NC}"
+            echo -e "  2. Merge the PR on GitHub"
+            echo -e "  3. Clean up: ${YELLOW}git checkout drafts/writing-pad && git branch -D $publish_branch${NC}"
+            echo ""
+            echo -e "${GREEN}🌐 Post will be live at: https://digitalsovereignty.herbertyang.xyz/p/$post_slug${NC}"
+
+            # Offer to create PR now
+            echo ""
+            echo -ne "${BLUE}Create Pull Request now? [Y/n]:${NC} "
+            read -r pr_confirm
+
+            if [[ ! "$pr_confirm" =~ ^[Nn]$ ]] && command -v gh >/dev/null 2>&1; then
+                echo -e "${BLUE}🚀 Creating Pull Request...${NC}"
+                gh pr create --base main --head "$publish_branch" --title "Publish: $post_title" && {
+                    echo -e "${GREEN}✅ Pull Request created!${NC}"
+                }
+            fi
+        else
+            # For SB and HY: Traditional workflow
+            echo -e "${GREEN}✅ Post published successfully!${NC}"
+            echo -e "${GREEN}🚀 GitHub Actions will deploy automatically${NC}"
+
+            case "$site_code" in
+                "sb")
+                    echo -e "${GREEN}📧 RSS feed will update and trigger Buttondown${NC}"
+                    echo -e "${GREEN}🌐 Post URL: https://weekly.sundayblender.com/p/$post_slug${NC}"
+                    ;;
+                "hy")
+                    echo -e "${GREEN}🌐 Post URL: https://herbertyang.xyz/blog/$post_slug${NC}"
+                    ;;
+                "dsc"|*)
+                    echo -e "${GREEN}📧 RSS feed will update and trigger Buttondown${NC}"
+                    echo -e "${GREEN}🌐 Post URL: https://digitalsovereignty.herbertyang.xyz/p/$post_slug${NC}"
+                    ;;
+            esac
+        fi
     else
         echo -e "${RED}❌ Failed to push to remote repository${NC}"
         echo -e "${YELLOW}⚠️  Post is committed locally but not pushed${NC}"
+
+        # Clean up publish branch if it was created
+        if [ -n "$publish_branch" ]; then
+            git checkout drafts/writing-pad
+            git branch -D "$publish_branch"
+        fi
         return 1
     fi
 
-    # Show post URL based on site
-    local post_slug=$(grep "slug:" "$post_file" | sed 's/slug: //' | tr -d ' ')
-    case "$site_code" in
-        "sb")
-            echo -e "${GREEN}📧 RSS feed will update and trigger Buttondown${NC}"
-            echo -e "${GREEN}🌐 Post URL: https://weekly.sundayblender.com/p/$post_slug${NC}"
-            ;;
-        "hy")
-            echo -e "${GREEN}🌐 Post URL: https://herbertyang.xyz/blog/$post_slug${NC}"
-            ;;
-        "dsc"|*)
-            echo -e "${GREEN}📧 RSS feed will update and trigger Buttondown${NC}"
-            echo -e "${GREEN}🌐 Post URL: https://digitalsovereignty.herbertyang.xyz/p/$post_slug${NC}"
-            ;;
-    esac
-    
     return 0
 }
 
