@@ -254,11 +254,13 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 
         if [[ ! "$push_choice" =~ ^[Nn]$ ]]; then
             local current_branch=$(git branch --show-current)
+            echo -e "${BLUE}📤 Pushing to remote...${NC}"
             git push -u origin "$current_branch" 2>/dev/null
             if [ $? -eq 0 ]; then
-                echo -e "${GREEN}✅ Pushed to remote successfully${NC}"
+                echo -e "${GREEN}✅ Successfully pushed to remote repository${NC}"
             else
-                echo -e "${YELLOW}⚠️  Push failed - you may need to push manually later${NC}"
+                echo -e "${RED}❌ Failed to push to remote repository${NC}"
+                echo -e "${YELLOW}⚠️  Changes are committed locally but not pushed${NC}"
             fi
         fi
     else
