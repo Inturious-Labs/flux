@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Zettelkasten Writer - Cursor Editor Integration
+# Flux - Cursor Editor Integration
 # Optimized for Cursor with markdown preview and writing theme
 
 # Load theme management

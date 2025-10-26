@@ -1,10 +1,10 @@
-# Zettelkasten Writer
+# Flux
 
 > A unified, interactive workflow for writing and publishing across multiple websites simultaneously
 
 ## Overview
 
-Zettelkasten Writer is a centralized writing workflow that manages content creation across multiple Hugo-based websites with a single command-line interface. Inspired by the Zettelkasten method of interconnected knowledge management, it provides a seamless experience for writers who maintain multiple publication channels.
+Flux is a centralized writing workflow that manages content creation across multiple Hugo-based websites with a single command-line interface. Inspired by the Zettelkasten method of interconnected knowledge management, it provides a seamless experience for writers who maintain multiple publication channels.
 
 ## Features
 
@@ -67,27 +67,27 @@ Zettelkasten Writer is a centralized writing workflow that manages content creat
 
 ```bash
 # Interactive writing session (with automatic git management)
-./zwrite
+./flux
 
 # Quick commands
-./zwrite save "Post Title"     # Save draft progress to git
-./zwrite publish "Post Title"  # Publish completed post
-./zwrite status               # Show all drafts across sites
-./zwrite git [site]           # Check git status for specific site (dsc|sb|hy)
-./zwrite help                 # Show all available commands
+./flux save "Post Title"     # Save draft progress to git
+./flux publish "Post Title"  # Publish completed post
+./flux status               # Show all drafts across sites
+./flux git [site]           # Check git status for specific site (dsc|sb|hy)
+./flux help                 # Show all available commands
 ```
 
 ## Installation
 
 1. **Clone this repository**
    ```bash
-   git clone https://github.com/zire/zettelkasten-writer.git
-   cd zettelkasten-writer
+   git clone https://github.com/zire/flux.git
+   cd flux
    ```
 
 2. **Make scripts executable**
    ```bash
-   chmod +x zwrite
+   chmod +x flux
    chmod +x lib/*.sh
    ```
 
@@ -99,14 +99,14 @@ Zettelkasten Writer is a centralized writing workflow that manages content creat
 
 5. **Start writing**
    ```bash
-   ./zwrite
+   ./flux
    ```
 
 ## Workflow
 
 ### Complete Writing Lifecycle
 
-1. **Launch** - Run `./zwrite` from anywhere
+1. **Launch** - Run `./flux` from anywhere
 2. **Select Site** - Choose from your configured websites with automatic git status check
 3. **Branch Management** - Automatically find existing draft branches or create new ones
 4. **Choose Action**:
@@ -168,7 +168,7 @@ main (infrastructure + published content)
 git add content/posts/drafts/
 git commit -m "Draft progress: AI sovereignty - added regulatory framework"
 
-# Publishing ready articles (via zwrite 'm' command)
+# Publishing ready articles (via flux 'm' command)
 git commit -m "Publish: AI Sovereignty Analysis - moved to dated folder"
 
 # Squash merge to main (creates clean publication history)
@@ -196,7 +196,7 @@ Comprehensive analysis of digital autonomy in emerging regulatory frameworks."
 
 ### Modular Design
 ```
-zwrite                    # Main orchestrator script
+flux                      # Main orchestrator script
 ├── lib/
 │   ├── menu.sh          # Interactive menus and draft/completion detection
 │   ├── frontmatter.sh   # Post creation and metadata management
@@ -259,24 +259,24 @@ The theme switching functionality modifies your Cursor `settings.json` temporari
 ### Command Line Interface
 ```bash
 # Interactive mode with git-aware workflow (recommended)
-./zwrite
+./flux
 
 # Quick draft saving
-./zwrite save "My Draft Title"
+./flux save "My Draft Title"
 
 # Quick publishing
-./zwrite publish "Completed Post Title"
+./flux publish "Completed Post Title"
 
 # Status overview
-./zwrite status
+./flux status
 
 # Git status checking
-./zwrite git dsc    # Check Digital Sovereignty Chronicle
-./zwrite git sb     # Check The Sunday Blender
-./zwrite git hy     # Check Herbert Yang site
+./flux git dsc    # Check Digital Sovereignty Chronicle
+./flux git sb     # Check The Sunday Blender
+./flux git hy     # Check Herbert Yang site
 
 # Help
-./zwrite help
+./flux help
 ```
 
 ### Enhanced Git Workflow Integration
@@ -303,7 +303,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 ```
 
 ### Git Status Information
-When you select a site, zwriter automatically shows:
+When you select a site, Flux automatically shows:
 - Current branch and recent branch history
 - Uncommitted changes (both tracked and untracked files)
 - Remote synchronization status (ahead/behind)

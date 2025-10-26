@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Zettelkasten Writer - Publishing & Draft Management
+# Flux - Publishing & Draft Management
 # For Digital Sovereignty Chronicle
 
 # Colors
