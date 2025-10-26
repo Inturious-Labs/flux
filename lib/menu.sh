@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Zettelkasten Writer - Interactive Menu System
+# Flux - Interactive Menu System
 # Focus: Digital Sovereignty Chronicle (other sites coming soon)
 
 # Colors and formatting
@@ -22,7 +22,7 @@ CONFIG_FILE="$LIB_DIR/../config/sites.json"
 show_header() {
     clear
     echo -e "${CYAN}╔══════════════════════════════════════════════════════════════════════╗${NC}"
-    echo -e "${CYAN}║${NC}  ${BOLD}✍️  Zettelkasten Writer${NC} ${GRAY}- Multi-Site Content Management${NC}     ${CYAN}║${NC}"
+    echo -e "${CYAN}║${NC}  ${BOLD}✍️  Flux${NC} ${GRAY}- Multi-Site Content Management${NC}                 ${CYAN}║${NC}"
     echo -e "${CYAN}╚══════════════════════════════════════════════════════════════════════╝${NC}"
     echo ""
 }

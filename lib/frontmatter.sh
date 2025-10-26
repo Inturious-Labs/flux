@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Zettelkasten Writer - Smart Frontmatter Wizard
+# Flux - Smart Frontmatter Wizard
 # Multi-site support
 
 # Source previous issues generator for Sunday Blender

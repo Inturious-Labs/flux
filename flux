@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Zettelkasten Writer - Master Workflow Orchestration
+# Flux - Master Workflow Orchestration
 # Your unified writing command center
 
 set -e

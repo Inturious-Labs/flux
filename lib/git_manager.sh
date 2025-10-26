@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Zettelkasten Writer - Git Management Module
-# Handles git operations for enhanced zwriter workflow
+# Flux - Git Management Module
+# Handles git operations for enhanced flux workflow
 
 # Colors
 RED='\033[0;31m'

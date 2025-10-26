@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Zettelkasten Writer - Theme Management
+# Flux - Theme Management
 # Automatic switching between coding and writing themes
 
 # Colors

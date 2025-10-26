@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Zettelkasten Writer - Session Management
+# Flux - Session Management
 # Handle writing session start/end with theme switching
 
 # Load theme management
