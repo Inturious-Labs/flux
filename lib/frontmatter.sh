@@ -511,7 +511,10 @@ create_hy_frontmatter() {
     
     # Ensure post directory exists
     mkdir -p "$post_dir"
-    
+
+    # Create img/ subdirectory for images
+    mkdir -p "$post_dir/img"
+
     # Create the post file with Docusaurus frontmatter
     cat > "$post_file" << EOF
 ---
@@ -520,20 +523,43 @@ date: $current_date
 tags: [$tag_array]
 keywords: [$keyword_array]
 draft: true
+image: "./img/featured-image.jpg"
 enable_rapport: true
 EOF
-    
+
     # Add description if provided
     if [ -n "$description" ]; then
         cat >> "$post_file" << EOF
 description: $description
 EOF
     fi
-    
+
     cat >> "$post_file" << EOF
 ---
 
+[Add your preview text here - this will appear on the blog index page]
 
+![Image Description](./img/featured-image.jpg)
+
+<!-- truncate -->
+
+<!--
+SOCIAL MEDIA PREVIEW IMAGE:
+The 'image' field in the frontmatter (image: "./img/featured-image.jpg")
+controls the preview image for Twitter/Facebook/LinkedIn sharing.
+
+Image requirements for social media preview (Twitter/Open Graph):
+- Recommended dimensions: 1200x630px (2:1 aspect ratio)
+- Alternative: 1200x675px (16:9 aspect ratio)
+- Minimum: 300x157px
+- Maximum: 4096x4096px
+- File size: Under 5MB
+- Format: JPG, PNG, or WebP
+-->
+
+## Main Content
+
+Write your article content here.
 
 ---
 
@@ -543,12 +569,20 @@ EOF
     echo ""
     echo -e "${GREEN}✅ Post created successfully!${NC}"
     echo -e "${BLUE}📝 File:${NC} $post_file"
+    echo -e "${BLUE}📁 Images folder:${NC} $post_dir/img"
+    echo ""
+    echo -e "${PURPLE}⚡ Twitter/OG Preview Image (set in frontmatter 'image' field):${NC}"
+    echo -e "  ${YELLOW}Recommended:${NC} 1200x630px (2:1 ratio) or 1200x675px (16:9)"
+    echo -e "  ${GRAY}Min: 300x157px | Max: 4096x4096px | Size: <5MB${NC}"
+    echo -e "  ${GRAY}This image appears when sharing on Twitter, Facebook, LinkedIn, etc.${NC}"
     echo ""
     echo -e "${PURPLE}Next steps:${NC}"
-    echo -e "  1. Write your content"
-    echo -e "  2. Set ${YELLOW}draft: false${NC} when ready to publish"
-    echo -e "  3. Preview: cd $hy_path/docusaurus && npm start"
-    echo -e "  4. Publish when ready"
+    echo -e "  1. Add featured image to: ${YELLOW}$post_dir/img/featured-image.jpg${NC}"
+    echo -e "     ${GRAY}(This is set as the social preview via frontmatter 'image' field)${NC}"
+    echo -e "  2. Replace preview placeholder text"
+    echo -e "  3. Write your article content"
+    echo -e "  4. Set ${YELLOW}draft: false${NC} when ready to publish"
+    echo -e "  5. Preview: cd $hy_path/docusaurus && npm start"
     
     # Return the post file path for opening in editor
     POST_FILE_RESULT="$post_file"
