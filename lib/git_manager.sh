@@ -86,6 +86,9 @@ find_or_create_draft_branch() {
 
     cd "$site_path" || return 1
 
+    # Remove stale remote branch references before displaying branches
+    git remote prune origin &>/dev/null
+
     # Look for existing draft branches
     local draft_branches=$(git branch -a | grep -E "(draft|feature|post)" | head -5)
 
