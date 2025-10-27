@@ -261,6 +261,8 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
             git push -u origin "$current_branch" 2>/dev/null
             if [ $? -eq 0 ]; then
                 echo -e "${GREEN}✅ Successfully pushed to remote repository${NC}"
+                echo -e "${MAGENTA}${BOLD}🎯 Your commit is ready for merging!${NC}"
+                echo -e "${CYAN}   Next step: Create a Pull Request on GitHub${NC}"
             else
                 echo -e "${RED}❌ Failed to push to remote repository${NC}"
                 echo -e "${YELLOW}⚠️  Changes are committed locally but not pushed${NC}"
@@ -328,12 +330,12 @@ date: $iso_date" -e "s/^draft: true$/draft: false/" "$post_file" > "$temp_file"
 
                     echo -e "${GREEN}✅ Frontmatter updated:${NC}"
                     echo -e "   - Publication date set to: $pub_date"
-                    echo -e "   - Draft flag changed to: false"
+                    echo -e "   - ${MAGENTA}${BOLD}Draft flag changed to: false${NC}"
                 fi
             else
                 # For non-DSC sites, just change draft: false
                 sed -i '' "s/^draft: true$/draft: false/" "$post_file" 2>/dev/null
-                echo -e "${GREEN}✅ Draft flag changed to false${NC}"
+                echo -e "${MAGENTA}${BOLD}✅ Draft flag changed to false${NC}"
             fi
 
             echo ""
