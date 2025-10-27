@@ -375,6 +375,12 @@ main_loop() {
                                     drafts+=("$line")
                                 fi
                             done < <(get_sb_drafts)
+                        elif [[ "$current_site" == "hy" ]]; then
+                            while IFS= read -r line; do
+                                if [ -n "$line" ]; then
+                                    drafts+=("$line")
+                                fi
+                            done < <(get_hy_drafts)
                         fi
                         
                         if [ "$action" -le ${#drafts[@]} ] && [ "$action" -ge 1 ]; then
