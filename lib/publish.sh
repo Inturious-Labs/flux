@@ -336,7 +336,11 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 
             if [[ ! "$pr_confirm" =~ ^[Nn]$ ]] && command -v gh >/dev/null 2>&1; then
                 echo -e "${BLUE}🚀 Creating Pull Request...${NC}"
-                gh pr create --base main --head "$publish_branch" --title "Publish: $post_title" && {
+                gh pr create --base main --head "$publish_branch" --title "Publish: $post_title" --body "📝 $word_count words | 🖼️ $image_count images
+
+Ready for publication on Digital Sovereignty Chronicle.
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)" && {
                     echo -e "${GREEN}✅ Pull Request created!${NC}"
                 }
             fi
