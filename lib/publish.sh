@@ -251,7 +251,7 @@ publish_post() {
     fi
     
     # Check for images
-    local image_count=$(find "$post_dir" -name "*.webp" -o -name "*.jpg" -o -name "*.png" 2>/dev/null | wc -l | tr -d ' ')
+    local image_count=$(find "$post_dir" -name "*.webp" -o -name "*.jpg" -o -name "*.jpeg" -o -name "*.png" 2>/dev/null | wc -l | tr -d ' ')
     echo -e "${BLUE}🖼️  Images found: $image_count${NC}"
     
     # Final confirmation
