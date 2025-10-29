@@ -292,11 +292,9 @@ enhanced_session_end() {
     echo -e "${BLUE}🔧 Session completion options:${NC}"
     echo -e "  ${GREEN}1)${NC} Save draft progress (commit + push)"
     echo -e "  ${GREEN}2)${NC} Mark ready for publish (commit + push)"
-    echo -e "  ${GREEN}3)${NC} Continue writing (no git action)"
-    echo -e "  ${GREEN}4)${NC} Manual git operations"
     echo -e "  ${GREEN}q)${NC} End session (restore coding theme)"
     echo ""
-    echo -ne "${BLUE}Your choice [1-4, q]:${NC} "
+    echo -ne "${BLUE}Your choice [1-2, q]:${NC} "
     read -r choice
 
     case "$choice" in
@@ -340,21 +338,6 @@ date: $iso_date" -e "s/^draft: true$/draft: false/" "$post_file" > "$temp_file"
 
             echo ""
             auto_commit_session "$site_code" "publish" "$article_title"
-            ;;
-        3)
-            echo -e "${BLUE}💡 Continuing writing session...${NC}"
-            echo -ne "${BLUE}Press any key when done writing...${NC}"
-            read -r
-            # After continuing, show the menu again
-            enhanced_session_end "$post_file" "$site_code"
-            return 0
-            ;;
-        4)
-            echo -e "${BLUE}🔧 Opening git status for manual operations...${NC}"
-            check_git_status "$site_code"
-            echo ""
-            echo -ne "${BLUE}Press any key when done with manual git operations...${NC}"
-            read -r
             ;;
         q|*)
             echo -e "${YELLOW}📝 Session ended without git operations${NC}"
