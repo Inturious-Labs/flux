@@ -141,9 +141,73 @@ publish_post() {
     fi
     
     local post_dir=$(dirname "$post_file")
-    
+
     echo -e "${BLUE}📁 Location: $post_dir${NC}"
-    
+
+    # Check if post is in drafts folder and needs to be moved
+    if [[ "$post_dir" == *"/drafts/"* ]]; then
+        echo -e "${YELLOW}📦 Post is in drafts folder, moving to dated structure...${NC}"
+
+        # Extract date and slug from frontmatter
+        local post_date=$(grep '^date:' "$post_file" | head -1 | sed 's/date: //' | sed 's/T.*//')
+        local post_slug=$(grep '^slug:' "$post_file" | head -1 | sed 's/slug: //' | tr -d ' ')
+
+        if [ -z "$post_date" ]; then
+            echo -e "${RED}❌ No date found in frontmatter, cannot move from drafts${NC}"
+            return 1
+        fi
+
+        if [ -z "$post_slug" ]; then
+            echo -e "${RED}❌ No slug found in frontmatter, cannot move from drafts${NC}"
+            return 1
+        fi
+
+        # Parse date components
+        local year=$(echo "$post_date" | cut -d'-' -f1)
+        local month=$(echo "$post_date" | cut -d'-' -f2)
+        local day=$(echo "$post_date" | cut -d'-' -f3)
+
+        # Create target directory based on site's date format
+        local target_dir=""
+        case "$site_code" in
+            "sb")
+                # Sunday Blender: YYYY/MM/MMDD
+                target_dir="$site_path/content/posts/$year/$month/${month}${day}"
+                ;;
+            "hy")
+                # Herbert Yang: YYYY-MM-DD-slug (in blog directory)
+                target_dir="$site_path/blog/$year/$post_date-$post_slug"
+                ;;
+            "dsc"|*)
+                # Digital Sovereignty Chronicle: YYYY/MM/DD-slug
+                target_dir="$site_path/content/posts/$year/$month/$day-$post_slug"
+                ;;
+        esac
+
+        # Check if target already exists
+        if [ -d "$target_dir" ]; then
+            echo -e "${RED}❌ Target directory already exists: $target_dir${NC}"
+            return 1
+        fi
+
+        echo -e "${BLUE}📂 Creating: $target_dir${NC}"
+        mkdir -p "$target_dir"
+
+        # Copy all files from draft directory to target
+        echo -e "${BLUE}📋 Moving files...${NC}"
+        cp -r "$post_dir"/* "$target_dir/"
+
+        # Remove original draft directory
+        echo -e "${BLUE}🗑️  Removing original draft folder...${NC}"
+        rm -rf "$post_dir"
+
+        # Update variables to point to new location
+        post_file="$target_dir/index.md"
+        post_dir="$target_dir"
+
+        echo -e "${GREEN}✅ Moved to: $post_dir${NC}"
+    fi
+
     # Set draft to false
     if grep -q "draft: true" "$post_file"; then
         echo -e "${BLUE}📝 Setting draft: false${NC}"
