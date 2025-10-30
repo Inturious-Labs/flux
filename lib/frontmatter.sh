@@ -256,12 +256,15 @@ date: $iso_date" -e "s/^draft: true$/draft: false/" "$target_file" > "$temp_file
     mv "$temp_file" "$target_file"
 
     echo ""
-    echo -e "${GREEN}✅ Post moved to dated folder and ready for publication!${NC}"
-    echo -e "${BLUE}📁 Moved to:${NC} $target_dir"
+    echo -e "${GREEN}╔══════════════════════════════════════════════════════════════════════╗${NC}"
+    echo -e "${GREEN}║${NC}  ${BOLD}✅ Article Published - Folder Moved${NC}                              ${GREEN}║${NC}"
+    echo -e "${GREEN}╚══════════════════════════════════════════════════════════════════════╝${NC}"
+    echo ""
+    echo -e "${BLUE}📂 FROM:${NC} ${DIM}$draft_path${NC}"
+    echo -e "${BLUE}📂 TO:${NC}   ${BOLD}$target_dir${NC}"
+    echo ""
     echo -e "${BLUE}📅 Publication date:${NC} $pub_date"
     echo -e "${BLUE}📝 Status:${NC} draft: false"
-    echo ""
-    echo -e "${GRAY}💡 Next step: Create a PR to merge your branch for deployment${NC}"
     echo ""
 
     # Ask if user wants to empty the draft folder
@@ -270,9 +273,245 @@ date: $iso_date" -e "s/^draft: true$/draft: false/" "$target_file" > "$temp_file
     if [[ "$remove_draft" =~ ^[Yy]$ ]]; then
         rm -rf "$draft_path"
         echo -e "${GREEN}✅ Drafts folder emptied${NC}"
+        echo ""
     else
         echo -e "${BLUE}ℹ️  Draft folder kept at: $draft_path${NC}"
+        echo ""
     fi
+
+    # Now perform automated git workflow
+    echo -e "${BLUE}🔄 Starting automated git workflow...${NC}"
+    echo ""
+
+    # Change to the DSC repository
+    cd "/Users/zire/matrix/github_zire/digital-sovereignty" || {
+        echo -e "${RED}❌ Failed to change to DSC repository${NC}"
+        return 1
+    }
+
+    # Get current branch
+    local current_branch=$(git branch --show-current)
+    echo -e "${BLUE}📍 Current branch:${NC} $current_branch"
+
+    # Stage all changes (the new dated folder and deletion of draft folder if applicable)
+    echo -e "${BLUE}📦 Staging changes...${NC}"
+    git add "$target_dir"
+    if [[ "$remove_draft" =~ ^[Yy]$ ]]; then
+        git add -u .  # Stage deletions
+    fi
+
+    # Commit the changes
+    local title=$(grep 'title:' "$target_file" | sed 's/title: "//' | sed 's/"//' | head -1)
+    local word_count=$(wc -w < "$target_file" | tr -d ' ')
+
+    echo -e "${BLUE}💾 Committing changes...${NC}"
+    git commit -m "Ready for publish: $title
+
+Moved from drafts/$selected_draft to dated folder for $pub_date publication.
+📝 $word_count words
+📅 Scheduled for $pub_date
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>"
+
+    if [ $? -ne 0 ]; then
+        echo -e "${RED}❌ Failed to commit changes${NC}"
+        return 1
+    fi
+
+    # Push the current branch
+    echo -e "${BLUE}📤 Pushing to remote...${NC}"
+    git push -u origin "$current_branch"
+
+    if [ $? -ne 0 ]; then
+        echo -e "${RED}❌ Failed to push to remote${NC}"
+        return 1
+    fi
+
+    # Create PR from current branch to main
+    echo ""
+    echo -e "${BLUE}🔀 Creating Pull Request to main...${NC}"
+
+    if ! command -v gh >/dev/null 2>&1; then
+        echo -e "${YELLOW}⚠️  GitHub CLI (gh) not found. Skipping automated workflow.${NC}"
+        echo -e "${YELLOW}Please complete manually:${NC}"
+        echo -e "${GRAY}  1. Create PR: $current_branch -> main${NC}"
+        echo -e "${GRAY}  2. Wait for deployment to succeed${NC}"
+        echo -e "${GRAY}  3. Merge the PR${NC}"
+        echo -e "${GRAY}  4. git checkout main && git pull${NC}"
+        echo -e "${GRAY}  5. git branch -d $current_branch${NC}"
+        echo -e "${GRAY}  6. git checkout drafts/writing-pad && git merge main${NC}"
+        return 0
+    fi
+
+    local pr_url=$(gh pr create --base main --head "$current_branch" \
+        --title "Publish: $title" \
+        --body "## Summary
+Publishing article scheduled for $pub_date
+
+- Moved from drafts to dated folder
+- Word count: $word_count
+- Publication date: $pub_date
+
+## Checklist
+- [x] Article moved to dated folder structure
+- [x] Frontmatter updated with publication date
+- [x] Draft status set to false
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)" 2>&1 | grep -o 'https://github.com[^ ]*' | head -1)
+
+    if [ -z "$pr_url" ]; then
+        echo -e "${YELLOW}⚠️  Could not create PR automatically${NC}"
+        echo -e "${YELLOW}Please create PR manually: ${BOLD}$current_branch -> main${NC}"
+        return 0
+    fi
+
+    echo -e "${GREEN}✅ Pull Request created: $pr_url${NC}"
+    echo ""
+
+    # Poll GitHub Actions status
+    echo -e "${BLUE}⏳ Waiting for GitHub Actions deployment to complete...${NC}"
+    echo -e "${GRAY}   (typically takes 25-30 seconds)${NC}"
+    echo ""
+
+    local elapsed=0
+    local check_interval=5
+    local max_wait=180  # 3 minutes max
+
+    while [ $elapsed -lt $max_wait ]; do
+        sleep $check_interval
+        elapsed=$((elapsed + check_interval))
+
+        # Check PR checks status
+        local checks_status=$(gh pr checks "$pr_url" --json state,name 2>/dev/null)
+
+        if [ -z "$checks_status" ]; then
+            printf "\r${BLUE}⏳ Waiting for checks to start... (${elapsed}s)${NC}                    "
+            continue
+        fi
+
+        # Parse the status - check if all checks are successful or if any failed
+        local failed_count=$(echo "$checks_status" | grep -c '"state":"FAILURE"' || true)
+        local pending_count=$(echo "$checks_status" | grep -c '"state":"PENDING"' || true)
+        local success_count=$(echo "$checks_status" | grep -c '"state":"SUCCESS"' || true)
+
+        if [ "$failed_count" -gt 0 ]; then
+            echo ""
+            echo -e "${RED}❌ GitHub Actions deployment failed!${NC}"
+            echo -e "${YELLOW}Please check: $pr_url${NC}"
+            echo ""
+            echo -e "${YELLOW}PR created but not merged. Fix issues and merge manually.${NC}"
+            return 1
+        elif [ "$pending_count" -eq 0 ] && [ "$success_count" -gt 0 ]; then
+            echo ""
+            echo -e "${GREEN}✅ GitHub Actions deployment successful! (${elapsed}s)${NC}"
+            break
+        else
+            printf "\r${BLUE}⏳ Deployment in progress... (${elapsed}s)${NC}                    "
+        fi
+    done
+
+    if [ $elapsed -ge $max_wait ]; then
+        echo ""
+        echo -e "${YELLOW}⚠️  Deployment is taking longer than expected${NC}"
+        echo -e "${YELLOW}Please check status manually: $pr_url${NC}"
+        return 1
+    fi
+
+    echo ""
+
+    # Now safe to merge the PR
+    echo -e "${BLUE}🔀 Merging Pull Request...${NC}"
+    gh pr merge "$pr_url" --squash --delete-branch
+
+    if [ $? -ne 0 ]; then
+        echo -e "${RED}❌ Failed to merge PR${NC}"
+        echo -e "${YELLOW}Please merge manually: $pr_url${NC}"
+        return 1
+    fi
+
+    echo -e "${GREEN}✅ Pull Request merged successfully${NC}"
+    echo ""
+
+    # Give GitHub a moment to process the merge and delete remote branch
+    echo -e "${BLUE}⏳ Waiting for GitHub to process merge...${NC}"
+    sleep 3
+
+    # Switch to main branch
+    echo -e "${BLUE}🌿 Switching to main branch...${NC}"
+    git checkout main
+
+    if [ $? -ne 0 ]; then
+        echo -e "${RED}❌ Failed to checkout main branch${NC}"
+        return 1
+    fi
+
+    # Pull latest changes (includes the merged PR)
+    echo -e "${BLUE}⬇️  Pulling latest changes from remote...${NC}"
+    git pull
+
+    if [ $? -ne 0 ]; then
+        echo -e "${RED}❌ Failed to pull from remote${NC}"
+        return 1
+    fi
+
+    # Delete the local publish branch (remote already deleted by PR merge)
+    if git show-ref --verify --quiet "refs/heads/$current_branch"; then
+        echo -e "${BLUE}🗑️  Deleting local publish branch: $current_branch${NC}"
+        git branch -d "$current_branch" 2>/dev/null || git branch -D "$current_branch"
+    fi
+
+    # Switch to drafts/writing-pad branch
+    echo -e "${BLUE}🌿 Switching to drafts/writing-pad branch...${NC}"
+    git checkout drafts/writing-pad
+
+    if [ $? -ne 0 ]; then
+        echo -e "${RED}❌ Failed to checkout drafts/writing-pad branch${NC}"
+        echo -e "${YELLOW}You may need to manually checkout and merge main${NC}"
+        return 1
+    fi
+
+    # Merge main into drafts/writing-pad to keep it updated
+    echo -e "${BLUE}🔄 Merging main into drafts/writing-pad...${NC}"
+    git merge main -m "Merge main: Update drafts branch with published article
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>"
+
+    if [ $? -ne 0 ]; then
+        echo -e "${RED}❌ Failed to merge main into drafts/writing-pad${NC}"
+        echo -e "${YELLOW}You may need to resolve conflicts manually${NC}"
+        return 1
+    fi
+
+    # Push the updated drafts/writing-pad branch
+    echo -e "${BLUE}📤 Pushing updated drafts/writing-pad branch...${NC}"
+    git push origin drafts/writing-pad
+
+    if [ $? -ne 0 ]; then
+        echo -e "${RED}❌ Failed to push drafts/writing-pad${NC}"
+        return 1
+    fi
+
+    # Extract slug for the live URL
+    local slug=$(grep '^slug:' "$target_file" | sed 's/slug: //' | tr -d ' ')
+
+    echo ""
+    echo -e "${GREEN}╔══════════════════════════════════════════════════════════════════════╗${NC}"
+    echo -e "${GREEN}║${NC}  ${BOLD}✅ Complete! Article Published & Git Workflow Done${NC}               ${GREEN}║${NC}"
+    echo -e "${GREEN}╚══════════════════════════════════════════════════════════════════════╝${NC}"
+    echo ""
+    echo -e "${GREEN}✅ Article deployed successfully${NC}"
+    echo -e "${GREEN}✅ PR merged to main${NC}"
+    echo -e "${GREEN}✅ Remote publish branch deleted${NC}"
+    echo -e "${GREEN}✅ Local branches cleaned up${NC}"
+    echo -e "${GREEN}✅ drafts/writing-pad updated with latest changes${NC}"
+    echo ""
+    echo -e "${BLUE}📍 Current branch:${NC} drafts/writing-pad"
+    echo -e "${BLUE}🌐 Article is live at:${NC} ${BOLD}https://digitalsovereignty.herbertyang.xyz/p/$slug${NC}"
+    echo ""
 
     return 0
 }
