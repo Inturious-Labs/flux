@@ -338,6 +338,30 @@ date: $iso_date" -e "s/^draft: true$/draft: false/" "$post_file" > "$temp_file"
 
             echo ""
             auto_commit_session "$site_code" "publish" "$article_title"
+
+            # For DSC: After committing "Ready for publish", trigger the publish workflow
+            if [[ "$site_code" == "dsc" ]] && [ $? -eq 0 ]; then
+                echo ""
+                echo -e "${CYAN}🚀 Ready to publish workflow...${NC}"
+                echo ""
+                echo -ne "${BLUE}Proceed with creating publish branch and moving post to dated folder? [Y/n]:${NC} "
+                read -r publish_confirm
+
+                if [[ ! "$publish_confirm" =~ ^[Nn]$ ]]; then
+                    # Load publish.sh functions
+                    source "$LIB_DIR/publish.sh"
+
+                    # Call publish_post which will:
+                    # 1. Create publish branch off drafts/writing-pad
+                    # 2. Move post from drafts to dated folder
+                    # 3. Push publish branch
+                    # 4. Optionally create PR
+                    publish_post "$article_title" "$site_code"
+                else
+                    echo -e "${YELLOW}📝 Post marked as ready, but publish workflow skipped${NC}"
+                    echo -e "${BLUE}💡 You can manually publish later using the 'p)ublish' option${NC}"
+                fi
+            fi
             ;;
         q|*)
             echo -e "${YELLOW}📝 Session ended without git operations${NC}"
