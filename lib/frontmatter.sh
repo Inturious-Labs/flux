@@ -541,16 +541,16 @@ create_sb_frontmatter() {
     read -r input_date
     
     if [ -z "$input_date" ]; then
-        current_date=$(date +"%Y-%m-%d")
+        publication_date=$(date +"%Y-%m-%d")
     else
         # Validate YYYY-MM-DD format and show day of week
         if date -j -f "%Y-%m-%d" "$input_date" "+%A, %B %d, %Y" >/dev/null 2>&1; then
             local day_info=$(date -j -f "%Y-%m-%d" "$input_date" "+%A, %B %d, %Y")
             echo -e "${BLUE}Publishing on: $day_info${NC}"
-            current_date="$input_date"
+            publication_date="$input_date"
         else
             echo -e "${RED}Invalid date format. Using today.${NC}"
-            current_date=$(date +"%Y-%m-%d")
+            publication_date=$(date +"%Y-%m-%d")
         fi
     fi
     
@@ -571,10 +571,11 @@ create_sb_frontmatter() {
     read -r keywords
     
     # Generate directory structure (SB uses YYYY/MM/MMDD format)
-    local current_year=$(date +%Y)
-    local current_month=$(date +%m)
-    local current_day=$(date +%d)
-    local post_dir="/Users/zire/matrix/github_zire/sundayblender/content/posts/$current_year/$current_month/$current_month$current_day"
+    # Extract year, month, day from the publication date
+    local publication_year=$(date -j -f "%Y-%m-%d" "$publication_date" +%Y)
+    local publication_month=$(date -j -f "%Y-%m-%d" "$publication_date" +%m)
+    local publication_day=$(date -j -f "%Y-%m-%d" "$publication_date" +%d)
+    local post_dir="/Users/zire/matrix/github_zire/sundayblender/content/posts/$publication_year/$publication_month/$publication_month$publication_day"
     
     # Check if directory exists
     if [ -d "$post_dir" ]; then
@@ -621,7 +622,7 @@ create_sb_frontmatter() {
     cat > "$post_file" << POSTEOF
 ---
 title: "$title"
-date: $current_date
+date: $publication_date
 slug: $slug
 description: "$description"
 tags: [$tags]
