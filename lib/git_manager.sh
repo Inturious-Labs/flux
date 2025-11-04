@@ -331,9 +331,26 @@ date: $iso_date" -e "s/^draft: true$/draft: false/" "$post_file" > "$temp_file"
                     echo -e "   - ${MAGENTA}${BOLD}Draft flag changed to: false${NC}"
                 fi
             else
-                # For non-DSC sites, just change draft: false
+                # For non-DSC sites (SB, HY), prepare for publication
+                echo ""
+                echo -e "${BLUE}📅 Preparing post for publication...${NC}"
+
+                # Extract current publication date from frontmatter
+                local current_date=$(grep '^date:' "$post_file" | head -1 | sed 's/date: //' | tr -d ' ')
+
+                # Show current post information
+                echo -e "${CYAN}📄 Post: ${BOLD}$article_title${NC}"
+                echo -e "${CYAN}📍 Location: $post_file${NC}"
+                if [ -n "$current_date" ]; then
+                    echo -e "${CYAN}📅 Publication date: $current_date${NC}"
+                fi
+
+                # Change draft flag to false
                 sed -i '' "s/^draft: true$/draft: false/" "$post_file" 2>/dev/null
-                echo -e "${MAGENTA}${BOLD}✅ Draft flag changed to false${NC}"
+
+                echo ""
+                echo -e "${GREEN}✅ Frontmatter updated:${NC}"
+                echo -e "   - ${MAGENTA}${BOLD}Draft flag changed to: false${NC}"
             fi
 
             echo ""
@@ -361,6 +378,15 @@ date: $iso_date" -e "s/^draft: true$/draft: false/" "$post_file" > "$temp_file"
                     echo -e "${YELLOW}📝 Post marked as ready, but publish workflow skipped${NC}"
                     echo -e "${BLUE}💡 You can manually publish later using the 'p)ublish' option${NC}"
                 fi
+            elif [ $? -eq 0 ]; then
+                # For non-DSC sites (SB, HY): Show summary after successful commit
+                echo ""
+                echo -e "${GREEN}🎉 Post is ready for publication!${NC}"
+                echo -e "${CYAN}📝 Article: ${BOLD}$article_title${NC}"
+                if [ -n "$current_date" ]; then
+                    echo -e "${CYAN}📅 Will be published on: $current_date${NC}"
+                fi
+                echo -e "${BLUE}💡 Next: The post will be automatically published when merged to main${NC}"
             fi
             ;;
         q|*)
