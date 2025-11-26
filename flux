@@ -15,6 +15,7 @@ source "$SCRIPT_DIR/lib/editor.sh"
 source "$SCRIPT_DIR/lib/publish.sh"
 source "$SCRIPT_DIR/lib/session.sh"
 source "$SCRIPT_DIR/lib/git_manager.sh"
+source "$SCRIPT_DIR/lib/tsb_workflow.sh"
 
 # Ensure theme is restored on exit (even if interrupted)
 cleanup_on_exit() {
@@ -289,7 +290,33 @@ main_loop() {
                         read -r
                     fi
                     ;;
-                    
+
+                t|tsb)
+                    if [[ "$current_site" == "sb" ]]; then
+                        echo -e "${CYAN}🚀 The Sunday Blender Enhanced Publish Workflow${NC}"
+                        echo ""
+
+                        # Select a post to publish
+                        echo -ne "${BLUE}Enter the post title to publish:${NC} "
+                        read -r post_title
+
+                        if [ -n "$post_title" ]; then
+                            publish_tsb_edition "$post_title"
+                            echo ""
+                            echo -ne "${BLUE}Press any key to continue...${NC}"
+                            read -r
+                        else
+                            echo -e "${RED}❌ No post title provided${NC}"
+                            echo -ne "${BLUE}Press any key to continue...${NC}"
+                            read -r
+                        fi
+                    else
+                        echo -e "${RED}❌ TSB Enhanced Publish is only available for The Sunday Blender${NC}"
+                        echo -ne "${BLUE}Press any key to continue...${NC}"
+                        read -r
+                    fi
+                    ;;
+
                 b|back)
                     current_site=""
                     site_name=""

@@ -59,7 +59,7 @@ Flux is a centralized writing workflow that manages content creation across mult
 ## Supported Sites
 
 - **✅ Digital Sovereignty Chronicle** - Crypto, AI, and digital sovereignty insights
-- **✅ The Sunday Blender** - Making news interesting for kids
+- **✅ The Sunday Blender** - Making news interesting for kids (with enhanced 16-step workflow automation)
 - **✅ Herbert Yang (Personal)** - Personal blog and thoughts
 - **🔄 Remnants of Globalization** - Newsletter about global changes *(coming soon)*
 
@@ -186,6 +186,69 @@ Comprehensive analysis of digital autonomy in emerging regulatory frameworks."
 - **Rich draft history** - detailed writing journey preserved
 - **Conflict prevention** - publication date validation
 
+### 🆕 The Sunday Blender Enhanced Publishing Workflow
+
+The Sunday Blender now features a comprehensive **16-step automated publishing workflow** that streamlines the entire newsletter production process from content creation to social media distribution.
+
+#### Workflow Overview
+
+The enhanced TSB workflow automates the complete publishing pipeline:
+
+```
+Step 1-2:  Edit content + Hugo preview (manual)
+Step 3:    Generate PDF (tsb-make-pdf)
+Step 4:    Create podcast via NotebookLM (manual)
+Step 5:    Process podcast audio (tsb-process-podcast)
+Step 6:    Generate show notes (tsb-generate-shownotes)
+Step 7:    Update frontmatter (draft: false)
+Step 8:    Reorganize to date-based structure
+Step 9:    Commit and push to draft branch
+Step 10:   Create pull request
+Step 11:   Merge PR automatically
+Step 12:   Delete remote and local branches
+Step 13:   Post announcement tweet
+Step 14:   Execute Twitter bot scheduler
+Step 15:   Update progress tracking table
+Step 16:   Final verification and cleanup
+```
+
+#### Using the TSB Enhanced Workflow
+
+1. **Start the workflow**:
+   ```bash
+   ./flux
+   # Select "2) The Sunday Blender"
+   # Press "t" for TSB Enhanced Publish
+   ```
+
+2. **Enter post title** when prompted
+
+3. **Follow the automated steps**:
+   - PDF generation happens automatically
+   - Upload to NotebookLM and download podcast (manual pause)
+   - Podcast processing and show notes generation (automated)
+   - Git operations, PR creation, and merge (automated)
+   - Social media posting templates provided
+   - Progress tracking updated
+
+#### Prerequisites
+
+For full automation, install these TSB-specific commands:
+- `tsb-make-pdf` - PDF generation from Hugo content
+- `tsb-process-podcast` - Audio processing (m4a → mp3, metadata)
+- `tsb-generate-shownotes` - AI-enhanced RSS content generation
+- `gh` - GitHub CLI for PR automation
+- Twitter CLI (optional) - For automated tweet posting
+
+#### Graceful Degradation
+
+The workflow gracefully handles missing tools:
+- **Missing TSB commands**: Provides manual step instructions
+- **No GitHub CLI**: Shows PR creation commands
+- **No Twitter CLI**: Displays tweet template for manual posting
+
+Each step can be skipped or performed manually if automation fails, ensuring you can always complete the publishing process.
+
 ### Session-Based Theme Switching
 
 - **Writing Mode**: Quiet Light theme with Georgia font, optimized for prose
@@ -204,7 +267,8 @@ flux                      # Main orchestrator script
 │   ├── publish.sh       # Git operations and publishing workflow
 │   ├── session.sh       # Session management and cleanup
 │   ├── git_manager.sh   # Enhanced git integration and automation
-│   └── themes.sh        # Theme switching functionality
+│   ├── themes.sh        # Theme switching functionality
+│   └── tsb_workflow.sh  # The Sunday Blender 16-step automation
 └── config/
     └── sites.json       # Multi-site configuration
 ```

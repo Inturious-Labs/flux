@@ -512,7 +512,12 @@ show_action_menu() {
     if [ ${#drafts[@]} -gt 0 ]; then
         echo -e "  ${GREEN}d)${NC} Delete draft"
     fi
-    
+
+    # TSB-specific enhanced publish workflow
+    if [[ "$site_code" == "sb" ]]; then
+        echo -e "  ${CYAN}t)${NC} TSB Enhanced Publish (full 16-step workflow)"
+    fi
+
     # Check if there are drafts in drafts/ folder (DSC only)
     if [[ "$site_code" == "dsc" ]]; then
         local drafts_folder_count=0
