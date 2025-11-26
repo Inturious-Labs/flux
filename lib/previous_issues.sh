@@ -14,8 +14,16 @@ GRAY='\033[0;90m'
 NC='\033[0m'
 BOLD='\033[1m'
 
+# Load configuration
+LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+CONFIG_FILE="$LIB_DIR/../config/sites.json"
+
 generate_previous_issues() {
-    local sb_path="/Users/zire/matrix/github_zire/sundayblender"
+    # Load SB path from config
+    local sb_path=$(jq -r '.sites.sb.path' "$CONFIG_FILE" 2>/dev/null)
+    if [ -z "$sb_path" ] || [ "$sb_path" = "null" ]; then
+        sb_path="/path/to/sundayblender"
+    fi
     local temp_file="/tmp/sb_published_posts.txt"
     
     # Find all published posts (draft: false) that are committed to git

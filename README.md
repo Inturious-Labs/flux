@@ -85,14 +85,36 @@ Flux is a centralized writing workflow that manages content creation across mult
    cd flux
    ```
 
-2. **Make scripts executable**
+2. **Configure your site paths**
+   ```bash
+   # Copy the example configuration
+   cp config/sites.json.example config/sites.json
+
+   # Edit with your actual repository paths
+   nano config/sites.json  # or use your preferred editor
+   ```
+
+   Update the `path` values for each site to point to your local Hugo repositories:
+   ```json
+   {
+     "sites": {
+       "dsc": {
+         "path": "/Users/yourname/projects/digital-sovereignty",
+         ...
+       },
+       "sb": {
+         "path": "/Users/yourname/projects/sundayblender",
+         ...
+       }
+     }
+   }
+   ```
+
+3. **Make scripts executable**
    ```bash
    chmod +x flux
    chmod +x lib/*.sh
    ```
-
-3. **Configure your site paths**
-   Edit `config/sites.json` with your website repository paths and settings
 
 4. **Install Cursor editor**
    Download from [cursor.sh](https://cursor.sh) and install the Code Spell Checker extension

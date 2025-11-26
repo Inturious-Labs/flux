@@ -3,7 +3,17 @@
 # DSC Scanner - Extract existing categories and series from Digital Sovereignty Chronicle
 # Used by frontmatter.sh to provide selection options
 
-DSC_CONTENT_DIR="/Users/zire/matrix/github_zire/digital-sovereignty/content/posts"
+# Load configuration
+LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+CONFIG_FILE="$LIB_DIR/../config/sites.json"
+
+# Load DSC path from config
+DSC_PATH=$(jq -r '.sites.dsc.path' "$CONFIG_FILE" 2>/dev/null)
+if [ -z "$DSC_PATH" ] || [ "$DSC_PATH" = "null" ]; then
+    DSC_PATH="/path/to/digital-sovereignty"
+fi
+
+DSC_CONTENT_DIR="$DSC_PATH/content/posts"
 
 # Scan for existing categories
 scan_dsc_categories() {
