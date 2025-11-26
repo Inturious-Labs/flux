@@ -13,8 +13,8 @@ CYAN='\033[0;36m'
 NC='\033[0m'
 
 # Get script directory and load configuration
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-CONFIG_FILE="$SCRIPT_DIR/../config/sites.json"
+LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+CONFIG_FILE="$LIB_DIR/../config/sites.json"
 
 # Load TSB path from config
 TSB_PATH=$(jq -r '.sites.sb.path' "$CONFIG_FILE" 2>/dev/null)

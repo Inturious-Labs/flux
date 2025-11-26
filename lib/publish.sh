@@ -12,8 +12,8 @@ PURPLE='\033[0;35m'
 NC='\033[0m'
 
 # Get script directory and load configuration
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-CONFIG_FILE="$SCRIPT_DIR/../config/sites.json"
+LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+CONFIG_FILE="$LIB_DIR/../config/sites.json"
 
 # Load site paths from config
 DSC_PATH=$(jq -r '.sites.dsc.path' "$CONFIG_FILE" 2>/dev/null)
