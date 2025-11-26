@@ -10,6 +10,9 @@ source "$LIB_DIR/previous_issues.sh"
 # Source DSC scanner for categories and series
 source "$LIB_DIR/dsc_scanner.sh"
 
+# Load configuration
+CONFIG_FILE="$LIB_DIR/../config/sites.json"
+
 # Colors
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -19,6 +22,17 @@ PURPLE='\033[0;35m'
 GRAY='\033[0;90m'
 NC='\033[0m'
 BOLD='\033[1m'
+
+# Load site paths from config
+get_site_path() {
+    local site_code="$1"
+    local path=$(jq -r ".sites.${site_code}.path" "$CONFIG_FILE" 2>/dev/null)
+    if [ -z "$path" ] || [ "$path" = "null" ]; then
+        echo "/path/to/site"
+    else
+        echo "$path"
+    fi
+}
 
 create_dsc_frontmatter() {
     echo -e "${BLUE}📝 Creating new post for Digital Sovereignty Chronicle${NC}"
@@ -58,9 +72,10 @@ create_dsc_frontmatter() {
     # Keywords (optional for SEO)
     printf "${GREEN}Keywords${NC} ${GRAY}(optional, comma-separated for SEO - can be added later):${NC} "
     read -r keywords
-    
+
     # Generate directory structure for drafts
-    local post_dir="/Users/zire/matrix/github_zire/digital-sovereignty/content/posts/drafts/$slug"
+    local dsc_path=$(get_site_path "dsc")
+    local post_dir="$dsc_path/content/posts/drafts/$slug"
     
     # Check if directory exists
     if [ -d "$post_dir" ]; then
@@ -145,7 +160,7 @@ EOF
     echo -e "${PURPLE}Next steps:${NC}"
     echo -e "  1. Add images to the post directory"
     echo -e "  2. Write your content"
-    echo -e "  3. Preview: cd /Users/zire/matrix/github_zire/digital-sovereignty && hugo server -D"
+    echo -e "  3. Preview: cd $dsc_path && hugo server -D"
     echo -e "  4. Use 'Publish Draft' option when ready to publish"
     
     # Return the post file path for opening in editor
@@ -158,7 +173,8 @@ publish_dsc_draft() {
     echo ""
 
     # List available drafts
-    local drafts_dir="/Users/zire/matrix/github_zire/digital-sovereignty/content/posts/drafts"
+    local dsc_path=$(get_site_path "dsc")
+    local drafts_dir="$dsc_path/content/posts/drafts"
     if [ ! -d "$drafts_dir" ] || [ -z "$(ls -A "$drafts_dir" 2>/dev/null)" ]; then
         echo -e "${RED}❌ No drafts found in $drafts_dir${NC}"
         return 1
@@ -219,7 +235,7 @@ publish_dsc_draft() {
     local pub_day=$(echo "$pub_date" | cut -d'-' -f3)
 
     # Create target directory
-    local target_dir="/Users/zire/matrix/github_zire/digital-sovereignty/content/posts/$pub_year/$pub_month/$pub_day-$selected_draft"
+    local target_dir="$dsc_path/content/posts/$pub_year/$pub_month/$pub_day-$selected_draft"
 
     # Check if target already exists
     if [ -d "$target_dir" ]; then
@@ -284,7 +300,7 @@ date: $iso_date" -e "s/^draft: true$/draft: false/" "$target_file" > "$temp_file
     echo ""
 
     # Change to the DSC repository
-    cd "/Users/zire/matrix/github_zire/digital-sovereignty" || {
+    cd "$dsc_path" || {
         echo -e "${RED}❌ Failed to change to DSC repository${NC}"
         return 1
     }
@@ -575,7 +591,8 @@ create_sb_frontmatter() {
     local publication_year=$(date -j -f "%Y-%m-%d" "$publication_date" +%Y)
     local publication_month=$(date -j -f "%Y-%m-%d" "$publication_date" +%m)
     local publication_day=$(date -j -f "%Y-%m-%d" "$publication_date" +%d)
-    local post_dir="/Users/zire/matrix/github_zire/sundayblender/content/posts/$publication_year/$publication_month/$publication_month$publication_day"
+    local sb_path=$(get_site_path "sb")
+    local post_dir="$sb_path/content/posts/$publication_year/$publication_month/$publication_month$publication_day"
     
     # Check if directory exists
     if [ -d "$post_dir" ]; then
@@ -744,7 +761,7 @@ create_hy_frontmatter() {
     fi
     
     # Create directory structure based on date and slug (like DSC)
-    local hy_path="/Users/zire/matrix/github_zire/herbertyang.xyz"
+    local hy_path=$(get_site_path "hy")
     local year=$(echo "$current_date" | cut -d'-' -f1)
     local post_dir="$hy_path/docusaurus/blog/$year/$current_date-$slug"
     local post_file="$post_dir/index.md"

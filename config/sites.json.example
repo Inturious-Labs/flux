@@ -1,0 +1,73 @@
+{
+  "sites": {
+    "dsc": {
+      "name": "Digital Sovereignty Chronicle",
+      "description": "Crypto, AI, and digital sovereignty insights",
+      "path": "/path/to/your/digital-sovereignty",
+      "url": "https://digitalsovereignty.example.com",
+      "type": "newsletter",
+      "theme": "paper",
+      "author": "Your Name",
+      "content_dir": "content/posts",
+      "date_format": "YYYY/MM/DD-slug",
+      "frontmatter": {
+        "required": ["title", "date", "slug", "categories"],
+        "optional": ["description", "series", "draft"],
+        "defaults": {
+          "draft": true,
+          "categories": ["crypto"]
+        }
+      },
+      "categories": ["crypto", "ai", "blockchain", "web3", "defi", "podcast", "tech", "digital-life"],
+      "series": ["weekly-updates", "deep-dive", "crypto-101"]
+    },
+    "sb": {
+      "name": "The Sunday Blender",
+      "description": "Making news interesting for kids",
+      "path": "/path/to/your/sundayblender",
+      "url": "https://weekly.example.com",
+      "type": "newsletter",
+      "theme": "diary",
+      "author": "Your Name",
+      "content_dir": "content/posts",
+      "date_format": "YYYY/MM/MMDD",
+      "frontmatter": {
+        "required": ["title", "date", "description", "tags"],
+        "optional": ["draft", "slug", "featured_image"],
+        "defaults": {
+          "draft": false,
+          "tags": ["news"]
+        }
+      },
+      "categories": ["tech", "global", "economy", "sports", "entertainment", "nature"],
+      "tags": ["facebook", "ai", "nintendo", "china", "education", "rock-n-roll", "apple", "game", "tennis", "cycling", "soccer", "f1-racing"]
+    },
+    "hy": {
+      "name": "Herbert Yang (Personal)",
+      "description": "Personal blog and thoughts",
+      "path": "/path/to/your/personal-blog",
+      "url": "https://example.com",
+      "type": "blog",
+      "theme": "docusaurus",
+      "author": "Your Name",
+      "content_dir": "blog",
+      "date_format": "YYYY-MM-DD-slug",
+      "frontmatter": {
+        "required": ["title", "date", "authors"],
+        "optional": ["tags", "description", "draft"],
+        "defaults": {
+          "draft": false,
+          "authors": ["author"]
+        }
+      },
+      "categories": ["personal", "tech", "thoughts", "projects"],
+      "tags": ["life", "coding", "startup", "crypto", "ai"]
+    }
+  },
+  "global": {
+    "editor": "cursor",
+    "timezone": "Asia/Shanghai",
+    "backup_dir": ".session-backups",
+    "templates_dir": "templates"
+  }
+}

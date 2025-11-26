@@ -12,7 +12,17 @@ PURPLE='\033[0;35m'
 CYAN='\033[0;36m'
 NC='\033[0m'
 
-TSB_PATH="/Users/zire/matrix/github_zire/sundayblender"
+# Get script directory and load configuration
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+CONFIG_FILE="$SCRIPT_DIR/../config/sites.json"
+
+# Load TSB path from config
+TSB_PATH=$(jq -r '.sites.sb.path' "$CONFIG_FILE" 2>/dev/null)
+if [ -z "$TSB_PATH" ] || [ "$TSB_PATH" = "null" ]; then
+    echo -e "${RED}❌ Error: Could not load Sunday Blender path from config${NC}" >&2
+    echo -e "${YELLOW}💡 Make sure config/sites.json exists (copy from config/sites.json.example)${NC}" >&2
+    TSB_PATH="/path/to/sundayblender"
+fi
 
 # Check if required TSB commands are available
 check_tsb_commands() {

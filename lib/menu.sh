@@ -19,6 +19,17 @@ DIM='\033[2m'
 LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CONFIG_FILE="$LIB_DIR/../config/sites.json"
 
+# Load site paths from config
+get_site_path() {
+    local site_code="$1"
+    local path=$(jq -r ".sites.${site_code}.path" "$CONFIG_FILE" 2>/dev/null)
+    if [ -z "$path" ] || [ "$path" = "null" ]; then
+        echo "/path/to/site"
+    else
+        echo "$path"
+    fi
+}
+
 show_header() {
     clear
     echo -e "${CYAN}╔══════════════════════════════════════════════════════════════════════╗${NC}"
@@ -48,7 +59,7 @@ show_site_menu() {
 }
 
 get_dsc_drafts() {
-    local dsc_path="/Users/zire/matrix/github_zire/digital-sovereignty"
+    local dsc_path=$(get_site_path "dsc")
     local drafts=()
     local count=0
     
@@ -108,7 +119,7 @@ get_dsc_drafts() {
 }
 
 get_sb_drafts() {
-    local sb_path="/Users/zire/matrix/github_zire/sundayblender"
+    local sb_path=$(get_site_path "sb")
     local drafts=()
     local count=0
     
@@ -152,7 +163,7 @@ get_sb_drafts() {
 }
 
 get_dsc_completed() {
-    local dsc_path="/Users/zire/matrix/github_zire/digital-sovereignty"
+    local dsc_path=$(get_site_path "dsc")
     local completed=()
     local count=0
     
@@ -228,7 +239,7 @@ get_dsc_completed() {
 }
 
 get_sb_completed() {
-    local sb_path="/Users/zire/matrix/github_zire/sundayblender"
+    local sb_path=$(get_site_path "sb")
     local completed=()
     local count=0
     
@@ -304,7 +315,7 @@ get_sb_completed() {
 }
 
 get_hy_drafts() {
-    local hy_path="/Users/zire/matrix/github_zire/herbertyang.xyz"
+    local hy_path=$(get_site_path "hy")
     local drafts=()
     local count=0
     
@@ -348,7 +359,7 @@ get_hy_drafts() {
 }
 
 get_hy_completed() {
-    local hy_path="/Users/zire/matrix/github_zire/herbertyang.xyz"
+    local hy_path=$(get_site_path "hy")
     local completed=()
     local count=0
     
@@ -798,9 +809,9 @@ select_draft_for_promotion() {
         echo -e "${RED}Draft promotion is only available for Digital Sovereignty Chronicle${NC}"
         return 1
     fi
-    
+
     # Get drafts that are in the drafts/ folder only
-    local dsc_path="/Users/zire/matrix/github_zire/digital-sovereignty"
+    local dsc_path=$(get_site_path "dsc")
     local drafts=()
     local count=0
     

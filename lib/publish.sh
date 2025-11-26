@@ -11,7 +11,17 @@ BLUE='\033[0;34m'
 PURPLE='\033[0;35m'
 NC='\033[0m'
 
-DSC_PATH="/Users/zire/matrix/github_zire/digital-sovereignty"
+# Get script directory and load configuration
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+CONFIG_FILE="$SCRIPT_DIR/../config/sites.json"
+
+# Load site paths from config
+DSC_PATH=$(jq -r '.sites.dsc.path' "$CONFIG_FILE" 2>/dev/null)
+if [ -z "$DSC_PATH" ] || [ "$DSC_PATH" = "null" ]; then
+    echo -e "${RED}❌ Error: Could not load DSC path from config${NC}" >&2
+    echo -e "${YELLOW}💡 Make sure config/sites.json exists (copy from config/sites.json.example)${NC}" >&2
+    DSC_PATH="/path/to/digital-sovereignty"
+fi
 
 save_draft_progress() {
     local post_title="$1"
@@ -98,14 +108,20 @@ publish_post() {
 
     echo -e "${BLUE}🚀 Publishing post: $post_title${NC}"
 
-    # Set site path based on site code
+    # Set site path based on site code (load from config)
     local site_path
     case "$site_code" in
         "sb")
-            site_path="/Users/zire/matrix/github_zire/sundayblender"
+            site_path=$(jq -r '.sites.sb.path' "$CONFIG_FILE" 2>/dev/null)
+            if [ -z "$site_path" ] || [ "$site_path" = "null" ]; then
+                site_path="/path/to/sundayblender"
+            fi
             ;;
         "hy")
-            site_path="/Users/zire/matrix/github_zire/herbertyang.xyz"
+            site_path=$(jq -r '.sites.hy.path' "$CONFIG_FILE" 2>/dev/null)
+            if [ -z "$site_path" ] || [ "$site_path" = "null" ]; then
+                site_path="/path/to/herbertyang.xyz"
+            fi
             ;;
         "dsc"|*)
             site_path="$DSC_PATH"
